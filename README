@@ -1,0 +1,19 @@
+ABOUT
+
+Are you tired of using the endless keystrokes of 'C-y M-y M-y M-y ...' to get
+at that bit of text you killed thirty-seven kills ago? Ever wish you could just
+look through everything you've killed recently to find out if you killed that
+piece of text that you think you killed, but you're not quite sure? If so, then
+browse-kill-ring.el is the emacs extension for you.
+Originally written by Colin Walters (Debian Developer, Emacs hacker, SELinux
+hacker, and general Free Software Guru Extrordinaire), I am the new maintainer
+of browse-kill-ring.el.
+
+INSTALLATION
+
+Installation is simple. First, put browse-kill-ring.el somewhere in your emacs
+'load-path'. Next, add the form (require 'browse-kill-ring) to your ~/.emacs
+file. Optionally, you can make it so all you need to do is type M-y to use
+browse-kill-ring by adding the form (browse-kill-ring-default-keybindings) to
+your ~/.emacs, or another key of your choice by using the form
+(global-set-key (kbd "key combination") 'browse-kill-ring). Simple, no?
