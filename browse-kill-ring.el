@@ -639,9 +639,8 @@ of the *Kill Ring*."
 
 (defun browse-kill-ring-do-insert (buf pt)
   (let ((str (browse-kill-ring-current-string buf pt)))
-    (save-selected-window
-      (select-window browse-kill-ring-original-window)
-
+    (with-selected-window browse-kill-ring-original-window 
+      
       (let (deactivate-mark)
 	(insert-for-yank str))
       
@@ -1050,12 +1049,10 @@ directly; use `browse-kill-ring' instead.
   (interactive)
   (if (eq major-mode 'browse-kill-ring-mode) 
       (message "Already viewing the kill ring")
-    (let ((orig-buf (current-buffer))
-	  (buf (get-buffer-create "*Kill Ring*")))
+    (let ((buf (get-buffer-create "*Kill Ring*")))
       (browse-kill-ring-setup buf (selected-window))
       (pop-to-buffer buf)
-      (browse-kill-ring-resize-window)
-      )))
+      (browse-kill-ring-resize-window))))
 
 (provide 'browse-kill-ring)
 
