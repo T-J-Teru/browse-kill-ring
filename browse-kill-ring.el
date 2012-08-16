@@ -3,12 +3,10 @@
 ;; Copyright (C) 2001, 2002 Colin Walters <walters@verbum.org>
 
 ;; Author: Colin Walters <walters@verbum.org>
-;; Maintainer: Nick Hurley <hurley@cis.ohio-state.edu>
+;; Maintainer: browse-kill-ring <browse-kill-ring@tonotdo.com>
 ;; Created: 7 Apr 2001
-;; Version: 1.3c
-;; X-RCS: $Id: browse-kill-ring.el,v 1.2 2008/10/29 00:23:00 hurley Exp $
-;; URL: http://freedom.cis.ohio-state.edu/~hurley/
-;; URL-ja: http://www.fan.gr.jp/~ring/doc/browse-kill-ring.html
+;; Version: 1.4
+;; URL: https://github.com/browse-kill-ring/browse-kill-ring
 ;; Keywords: convenience
 
 ;; This file is not currently part of GNU Emacs.
@@ -50,7 +48,11 @@
 
 ;;; Change Log:
 
-;; Changes from 1.3b to 1.3c:
+;; Changes from 1.3c to 1.4:
+
+;; * 16-Aug-2012: Toon Claes
+;;   No actual changes to the code, but released again by the
+;;   browse-kill-ring user at Github.com.
 
 ;; * 28-Feb-2011: Andrew Burgess <aburgess@broadcom.com>
 ;;   Fix a bug where having other overlays active in the kill ring buffer,

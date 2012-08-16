@@ -1,26 +1,31 @@
-NOTE: I HAVE "ABANDONED" THIS SOFTWARE. I AM NO LONGER AN EMACS USER, SO THIS IS
-NO LONGER USEFUL TO ME. THAT SAID, IF ANY ONE WANTS TO OFFICIALLY TAKE OVER THE
-PROJECT, EMAIL ME hurley AT <my github username> DOT org AND WE WILL GET THINGS
-SET UP.
+#+TITLE: browse-kill-ring README
 
-THAT SAID, HERE'S THE ORIGINAL README
-==========================================================================
-ABOUT
+* ABOUT
 
-Are you tired of using the endless keystrokes of 'C-y M-y M-y M-y ...' to get
+Are you tired of using the endless keystrokes of =C-y M-y M-y M-y ...= to get
 at that bit of text you killed thirty-seven kills ago? Ever wish you could just
 look through everything you've killed recently to find out if you killed that
 piece of text that you think you killed, but you're not quite sure? If so, then
 browse-kill-ring.el is the emacs extension for you.
+
+* INSTALLATION
+
+Installation is simple:
+
+- Put =browse-kill-ring.el= somewhere in your emacs =load-path=.
+- Next, add the form =(require 'browse-kill-ring)= to your =~/.emacs= file.
+- Optionally, you can map =M-y= to =browse-kill-ring= by adding the form
+  =(browse-kill-ring-default-keybindings)= to your =~/.emacs=.
+  Otherwise you can map =browse-kill-ring= to another key combination,
+  for example =(global-set-key "\C-cy" 'browse-kill-ring)=.
+Simple, no?
+
+* HISTORY
 Originally written by Colin Walters (Debian Developer, Emacs hacker, SELinux
-hacker, and general Free Software Guru Extrordinaire), I am the new maintainer
-of browse-kill-ring.el.
-
-INSTALLATION
-
-Installation is simple. First, put browse-kill-ring.el somewhere in your emacs
-'load-path'. Next, add the form (require 'browse-kill-ring) to your ~/.emacs
-file. Optionally, you can make it so all you need to do is type M-y to use
-browse-kill-ring by adding the form (browse-kill-ring-default-keybindings) to
-your ~/.emacs, or another key of your choice by using the form
-(global-set-key (kbd "key combination") 'browse-kill-ring). Simple, no?
+hacker, and general Free Software Guru Extrordinaire). After that maintained
+by [[https://github.com/todesschaf][Nick Hurley]]. Unfortunately he had to abandon emacs. Therefore this organisation
+account is created at Github. Feel free to issue pull requests.
+Current contibutors:
+- [[https://github.com/monsanto][Christopher Monsanto]]
+- [[https://github.com/T-J-Teru][Andrew]]
+- [[https://github.com/To1ne][Toon Claes]]
