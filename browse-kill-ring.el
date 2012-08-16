@@ -355,7 +355,7 @@ when you call `kill-new'.
 If you set this variable via customize, the advice will be activated
 or deactivated automatically.  Otherwise, to enable the advice, add
 
- (ad-enable-advice 'kill-new 'around 'browse-kill-ring-no-kill-new-duplicates)
+B (ad-enable-advice 'kill-new 'around 'browse-kill-ring-no-kill-new-duplicates)
  (ad-activate 'kill-new)
 
 to your init file."
@@ -639,30 +639,16 @@ of the *Kill Ring*."
 
 (defun browse-kill-ring-do-insert (buf pt)
   (let ((str (browse-kill-ring-current-string buf pt)))
-    (let ((orig (current-buffer)))
-      (unwind-protect
-	  (progn
-	    (unless (window-live-p browse-kill-ring-original-window)
-	      (error "Window %s has been deleted; Try calling `browse-kill-ring' again"
-		     browse-kill-ring-original-window))
-	    (set-buffer (window-buffer browse-kill-ring-original-window))
-	    (save-excursion
-	      ;; Use the point position from the original window that
-	      ;; requested the insert, if we just use (point) then
-	      ;; we'll get the point position from the last window
-	      ;; that was opened onto this buffer, probably not what
-	      ;; you intended.
-	      (let ((pt (window-point browse-kill-ring-original-window)))
-                (goto-char pt)
-		(insert (if browse-kill-ring-depropertize
-			    (browse-kill-ring-depropertize-string str)
-			  str))
-		(when browse-kill-ring-highlight-inserted-item
-		  (let ((o (make-overlay pt (point))))
-		    (overlay-put o 'face 'highlight)
-		    (sit-for 0.5)
-		    (delete-overlay o))))))
-	(set-buffer orig)))))
+    (with-selected-window browse-kill-ring-original-window 
+      
+      (let (deactivate-mark)
+	(insert-for-yank str))
+      
+      (when browse-kill-ring-highlight-inserted-item
+	(let ((o (make-overlay pt (point))))
+	  (overlay-put o 'face 'highlight)
+	  (sit-for 0.5)
+	  (delete-overlay o))))))
 
 (defun browse-kill-ring-forward (&optional arg)
   "Move forward by ARG `kill-ring' entries."
@@ -1063,12 +1049,10 @@ directly; use `browse-kill-ring' instead.
   (interactive)
   (if (eq major-mode 'browse-kill-ring-mode) 
       (message "Already viewing the kill ring")
-    (let ((orig-buf (current-buffer))
-	  (buf (get-buffer-create "*Kill Ring*")))
+    (let ((buf (get-buffer-create "*Kill Ring*")))
       (browse-kill-ring-setup buf (selected-window))
       (pop-to-buffer buf)
-      (browse-kill-ring-resize-window)
-      nil)))
+      (browse-kill-ring-resize-window))))
 
 (provide 'browse-kill-ring)
 
