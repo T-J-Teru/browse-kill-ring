@@ -325,6 +325,16 @@ See `browse-kill-ring-display-style'."
   :type 'face
   :group 'browse-kill-ring)
 
+(defcustom browse-kill-ring-current-entry-face 'highlight
+  "The face in which to highlight the browse kill current entry."
+  :type 'face
+  :group 'browse-kill-ring)
+
+(defcustom browse-kill-ring-inserted-item-face 'highlight
+  "The face in which to highlight the inserted item."
+  :type 'face
+  :group 'browse-kill-ring)
+
 (defcustom browse-kill-ring-maximum-display-length nil
   "Whether or not to limit the length of displayed items.
 
@@ -532,7 +542,7 @@ of the *Kill Ring*."
                           str))
                 (when browse-kill-ring-highlight-inserted-item
                   (let ((o (make-overlay (point-min) (point))))
-                    (overlay-put o 'face 'highlight)
+                    (overlay-put o 'face 'browse-kill-ring-inserted-item-face)
                     (sit-for 0.5)
                     (delete-overlay o)))
                 (goto-char pt))))
@@ -590,7 +600,7 @@ of the *Kill Ring*."
                           str))
                 (when browse-kill-ring-highlight-inserted-item
                   (let ((o (make-overlay begin-pt (point-max))))
-                    (overlay-put o 'face 'highlight)
+                    (overlay-put o 'face 'browse-kill-ring-inserted-item-face)
                     (sit-for 0.5)
                     (delete-overlay o)))
                 (goto-char pt))))
@@ -648,7 +658,7 @@ of the *Kill Ring*."
 
       (when browse-kill-ring-highlight-inserted-item
         (let ((o (make-overlay pt (point))))
-          (overlay-put o 'face 'highlight)
+          (overlay-put o 'face 'browse-kill-ring-inserted-item-face)
           (sit-for 0.5)
           (delete-overlay o))))))
 
@@ -688,7 +698,7 @@ of the *Kill Ring*."
       (mapcar #'(lambda (o)
                   (overlay-put o 'face nil))
               (nconc (car overs) (cdr overs)))
-      (overlay-put current-overlay 'face 'highlight)))
+      (overlay-put current-overlay 'face 'browse-kill-ring-current-entry-face)))
   (when browse-kill-ring-recenter
     (recenter 1)))
 
