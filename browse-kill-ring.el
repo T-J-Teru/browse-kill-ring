@@ -404,6 +404,11 @@ inserted with properties."
 It is probably not a good idea to set this variable directly; simply
 call `browse-kill-ring' again.")
 
+(defvar browse-kill-ring-original-buffer nil
+  "The buffer in which chosen kill ring data will be inserted.
+It is probably not a good idea to set this variable directly; simply
+call `browse-kill-ring' again.")
+
 (defun browse-kill-ring-mouse-insert (e)
   "Insert the chosen text, and close the *Kill Ring* buffer afterwards."
   (interactive "e")
@@ -651,7 +656,7 @@ of the *Kill Ring*."
 
 (defun browse-kill-ring-do-insert (buf pt)
   (let ((str (browse-kill-ring-current-string buf pt)))
-    (with-selected-window browse-kill-ring-original-window
+    (with-current-buffer browse-kill-ring-original-buffer
 
       (let (deactivate-mark)
         (insert-for-yank str))
@@ -984,8 +989,8 @@ directly; use `browse-kill-ring' instead.
                           browse-kill-ring-original-window)
   (browse-kill-ring-resize-window))
 
-(defun browse-kill-ring-setup (buf window &optional regexp window-config)
-  (with-current-buffer buf
+(defun browse-kill-ring-setup (kill-buf orig-buf window &optional regexp window-config)
+  (with-current-buffer kill-buf
     (unwind-protect
         (progn
           (browse-kill-ring-mode)
@@ -995,7 +1000,8 @@ directly; use `browse-kill-ring' instead.
             (setq truncate-lines t))
           (let ((inhibit-read-only t))
             (erase-buffer))
-          (setq browse-kill-ring-original-window window
+          (setq browse-kill-ring-original-buffer orig-buf
+                browse-kill-ring-original-window window
                 browse-kill-ring-original-window-config
                 (or window-config
                     (current-window-configuration)))
@@ -1061,8 +1067,10 @@ directly; use `browse-kill-ring' instead.
   (interactive)
   (if (eq major-mode 'browse-kill-ring-mode)
       (message "Already viewing the kill ring")
-    (let ((buf (get-buffer-create "*Kill Ring*")))
-      (browse-kill-ring-setup buf (selected-window))
+    (let* ((orig-win (selected-window))
+           (orig-buf (window-buffer orig-win))
+           (buf (get-buffer-create "*Kill Ring*")))
+      (browse-kill-ring-setup buf orig-buf orig-win)
       (pop-to-buffer buf)
       (browse-kill-ring-resize-window))))
 
