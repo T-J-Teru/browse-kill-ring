@@ -48,6 +48,18 @@
 
 ;;; Change Log:
 
+;; Changes from 1.4 to 1.5:
+
+;; * 2013-Jan-02: Ethan Glasser-Camp
+;;   Fix a bug with default faces used to highlight items.
+;;   The symbols browse-kill-ring-current-entry-face and
+;;   browse-kill-ring-inserted-item-face are now treated like
+;;   variables specifying a face instead of faces themselves. If you
+;;   defined faces with these names, you will need to set the symbols
+;;   (as variables) to the names of the faces you defined.
+;;
+;;   (setq browse-kill-ring-current-entry-face 'browse-kill-ring-current-entry-face)
+
 ;; Changes from 1.3c to 1.4:
 
 ;; * 16-Aug-2012: Toon Claes
@@ -547,7 +559,7 @@ of the *Kill Ring*."
                           str))
                 (when browse-kill-ring-highlight-inserted-item
                   (let ((o (make-overlay (point-min) (point))))
-                    (overlay-put o 'face 'browse-kill-ring-inserted-item-face)
+                    (overlay-put o 'face browse-kill-ring-inserted-item-face)
                     (sit-for 0.5)
                     (delete-overlay o)))
                 (goto-char pt))))
@@ -605,7 +617,7 @@ of the *Kill Ring*."
                           str))
                 (when browse-kill-ring-highlight-inserted-item
                   (let ((o (make-overlay begin-pt (point-max))))
-                    (overlay-put o 'face 'browse-kill-ring-inserted-item-face)
+                    (overlay-put o 'face browse-kill-ring-inserted-item-face)
                     (sit-for 0.5)
                     (delete-overlay o)))
                 (goto-char pt))))
@@ -663,7 +675,7 @@ of the *Kill Ring*."
 
       (when browse-kill-ring-highlight-inserted-item
         (let ((o (make-overlay pt (point))))
-          (overlay-put o 'face 'browse-kill-ring-inserted-item-face)
+          (overlay-put o 'face browse-kill-ring-inserted-item-face)
           (sit-for 0.5)
           (delete-overlay o))))))
 
@@ -703,7 +715,7 @@ of the *Kill Ring*."
       (mapcar #'(lambda (o)
                   (overlay-put o 'face nil))
               (nconc (car overs) (cdr overs)))
-      (overlay-put current-overlay 'face 'browse-kill-ring-current-entry-face)))
+      (overlay-put current-overlay 'face browse-kill-ring-current-entry-face)))
   (when browse-kill-ring-recenter
     (recenter 1)))
 
