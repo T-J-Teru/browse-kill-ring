@@ -62,6 +62,10 @@
 ;;
 ;;   Fix another bug with highlighting inserted items. (Previously, it
 ;;   highlighted arbitrary and incorrect parts of the buffer.)
+;;
+;;   Add custom variable browse-kill-ring-replace-yank. When t, this
+;;   makes browse-kill-ring after a yank replace the yanked text, like
+;;   yank-pop.
 
 ;; Changes from 1.3c to 1.4:
 
@@ -410,6 +414,21 @@ inserted with properties."
   :type 'hook
   :group 'browse-kill-ring)
 
+(defcustom browse-kill-ring-replace-yank t
+  "If non-nil, browse-kill-ring will replace just-yanked items
+when it inserts its own. That is, if you call `yank', and then
+`browse-kill-ring', and then insert something via
+`browse-kill-ring', the yanked text that you originally inserted
+will be deleted. This makes browse-kill-ring behave more like
+`yank-pop'.
+
+This doesn't change the behavior of `yank-pop' or
+`browse-kill-ring-default-keybindings'. Instead, for this to take
+effect, you will have to bind a key to `browse-kill-ring'
+directly."
+  :type 'boolean
+  :group 'browse-kill-ring)
+
 (defvar browse-kill-ring-original-window-config nil
   "The window configuration to restore for `browse-kill-ring-quit'.")
 (make-variable-buffer-local 'browse-kill-ring-original-window-config)
@@ -423,6 +442,9 @@ call `browse-kill-ring' again.")
   "The buffer in which chosen kill ring data will be inserted.
 It is probably not a good idea to set this variable directly; simply
 call `browse-kill-ring' again.")
+
+(defvar browse-kill-ring-this-buffer-replace-yanked-text nil
+  "Whether or not to replace yanked text before an insert.")
 
 (defun browse-kill-ring-mouse-insert (e)
   "Insert the chosen text, and close the *Kill Ring* buffer afterwards."
@@ -672,6 +694,8 @@ of the *Kill Ring*."
 (defun browse-kill-ring-do-insert (buf pt)
   (let ((str (browse-kill-ring-current-string buf pt)))
     (with-current-buffer browse-kill-ring-original-buffer
+      (when browse-kill-ring-this-buffer-replace-yanked-text
+        (delete-region (mark) (point)))
       (let ((before-insert (point)))
 
         (let (deactivate-mark)
@@ -1009,6 +1033,10 @@ directly; use `browse-kill-ring' instead.
   (with-current-buffer kill-buf
     (unwind-protect
         (progn
+          (setq browse-kill-ring-this-buffer-replace-yanked-text
+                (and
+                 browse-kill-ring-replace-yank
+                 (eq last-command 'yank)))
           (browse-kill-ring-mode)
           (setq buffer-read-only nil)
           (when (eq browse-kill-ring-display-style
