@@ -669,15 +669,16 @@ of the *Kill Ring*."
 (defun browse-kill-ring-do-insert (buf pt)
   (let ((str (browse-kill-ring-current-string buf pt)))
     (with-current-buffer browse-kill-ring-original-buffer
+      (let ((before-insert (point)))
 
-      (let (deactivate-mark)
-        (insert-for-yank str))
+        (let (deactivate-mark)
+          (insert-for-yank str))
 
-      (when browse-kill-ring-highlight-inserted-item
-        (let ((o (make-overlay pt (point))))
-          (overlay-put o 'face browse-kill-ring-inserted-item-face)
-          (sit-for 0.5)
-          (delete-overlay o))))))
+        (when browse-kill-ring-highlight-inserted-item
+          (let ((o (make-overlay before-insert (point))))
+            (overlay-put o 'face browse-kill-ring-inserted-item-face)
+            (sit-for 0.5)
+            (delete-overlay o)))))))
 
 (defun browse-kill-ring-forward (&optional arg)
   "Move forward by ARG `kill-ring' entries."
