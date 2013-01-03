@@ -586,8 +586,7 @@ of the *Kill Ring*."
                   (let ((o (make-overlay (point-min) (point))))
                     (overlay-put o 'face browse-kill-ring-inserted-item-face)
                     (sit-for 0.5)
-                    (delete-overlay o)))
-                (goto-char pt))))
+                    (delete-overlay o))))))
         (set-buffer orig)))))
 
 (defun browse-kill-ring-append-insert (&optional quit)
@@ -644,8 +643,7 @@ of the *Kill Ring*."
                   (let ((o (make-overlay begin-pt (point-max))))
                     (overlay-put o 'face browse-kill-ring-inserted-item-face)
                     (sit-for 0.5)
-                    (delete-overlay o)))
-                (goto-char pt))))
+                    (delete-overlay o))))))
         (set-buffer orig)))))
 
 (defun browse-kill-ring-delete ()
