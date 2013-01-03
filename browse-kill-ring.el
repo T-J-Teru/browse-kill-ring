@@ -59,6 +59,9 @@
 ;;   (as variables) to the names of the faces you defined.
 ;;
 ;;   (setq browse-kill-ring-current-entry-face 'browse-kill-ring-current-entry-face)
+;;
+;;   Fix another bug with highlighting inserted items. (Previously, it
+;;   highlighted arbitrary and incorrect parts of the buffer.)
 
 ;; Changes from 1.3c to 1.4:
 
