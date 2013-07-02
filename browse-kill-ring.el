@@ -598,7 +598,7 @@ of the *Kill Ring*."
        (lambda (w)
          (when (eq (current-buffer) (window-buffer w))
            (set-window-point w (point))))
-       (window-list))))
+       (window-list)))
 
     (when browse-kill-ring-highlight-inserted-item
       (let ((o (make-overlay before-insert (point))))
