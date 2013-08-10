@@ -50,6 +50,10 @@
 
 ;; Changes from 1.4 to 1.5:
 
+;; * 2013-Aug-10: Ethan Glasser-Camp
+;;   Fix browse-kill-ring-update. Commit ca0b5f4 broke it. Fixing it
+;;   also exposed some problems with how the overlay is handled.
+
 ;; * 2013-Jul-29: Ethan Glasser-Camp
 ;;   Make `browse-kill-ring-quit-action' default to
 ;;   `save-and-restore'. This seems to DWIM in most cases: running
@@ -1041,6 +1045,7 @@ directly; use `browse-kill-ring' instead.
   (interactive)
   (assert (eq major-mode 'browse-kill-ring-mode))
   (browse-kill-ring-setup (current-buffer)
+                          browse-kill-ring-original-buffer
                           browse-kill-ring-original-window)
   (browse-kill-ring-resize-window))
 
@@ -1070,8 +1075,10 @@ directly; use `browse-kill-ring' instead.
                   (max (point) (mark))
                 (point))))
     (when browse-kill-ring-show-preview
+      (when browse-kill-ring-preview-overlay
+        (delete-overlay browse-kill-ring-preview-overlay))
       (setq browse-kill-ring-preview-overlay
-            (make-overlay start end (current-buffer)))))
+            (make-overlay start end orig-buf))))
   (overlay-put browse-kill-ring-preview-overlay
                'invisible t)
   (with-current-buffer kill-buf
