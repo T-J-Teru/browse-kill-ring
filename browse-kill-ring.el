@@ -823,12 +823,11 @@ entry."
     (delete-overlay browse-kill-ring-preview-overlay))
   (case browse-kill-ring-quit-action
     (save-and-restore
-     ;; FIXME: after everyone is on emacs >24, maybe we can just use
-     ;; quit-window and not have to mess around with
-     ;; window-configurations directly.
-     (let (buf (current-buffer))
-       (set-window-configuration browse-kill-ring-original-window-config)
-       (kill-buffer buf)))
+      (if (< emacs-major-version 24)
+        (let (buf (current-buffer))
+             (set-window-configuration browse-kill-ring-original-window-config)
+           (kill-buffer buf))
+       (quit-window)))
     (kill-and-delete-window
      (kill-buffer (current-buffer))
      (unless (= (count-windows) 1)
