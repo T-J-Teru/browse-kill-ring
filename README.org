@@ -25,4 +25,4 @@ Originally written by Colin Walters (Debian Developer, Emacs hacker, SELinux
 hacker, and general Free Software Guru Extrordinaire). After that maintained
 by [[https://github.com/todesschaf][Nick Hurley]]. Unfortunately he had to abandon emacs. Therefore this organisation
 account is created at Github. Feel free to issue pull requests.
-The current contibutors can be found on [[https://github.com/orgs/browse-kill-ring/members][GitHub]].
+The current contibutors can be found on [[https://github.com/orgs/browse-kill-ring/people][GitHub]].
