@@ -1,3 +1,6 @@
+2014-08-07 Andrew Burgess <andrew.burgess@embecosm.com>
+	Handle case where kill-ring-yank-pointer is nil (empty kill ring).
+
 2014-01-04 Toon Claes <toon@tonotdo.com>
 	Use Semantic Versioning (www.semver.org) from now.
 

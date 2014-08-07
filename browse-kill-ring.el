@@ -1019,7 +1019,9 @@ directly; use `browse-kill-ring' instead.
     (let* ((orig-win (selected-window))
            (orig-buf (window-buffer orig-win))
            (buf (get-buffer-create "*Kill Ring*"))
-           (kill-ring-yank-pointer-string (substring-no-properties (car kill-ring-yank-pointer)))
+           (kill-ring-yank-pointer-string
+            (if kill-ring-yank-pointer
+                (substring-no-properties (car kill-ring-yank-pointer))))
            (stop-search nil)
            (search-found nil)
            current-target-string)
