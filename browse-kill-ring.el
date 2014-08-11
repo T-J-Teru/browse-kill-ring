@@ -83,7 +83,7 @@ properties to add to the result."
 
 (defgroup browse-kill-ring nil
   "A package for browsing and inserting the items in `kill-ring'."
-  :link '(url-link "http://freedom.cis.ohio-state.edu/~hurley/")
+  :link '(url-link "https://github.com/browse-kill-ring/browse-kill-ring")
   :group 'convenience)
 
 (defvar browse-kill-ring-display-styles
