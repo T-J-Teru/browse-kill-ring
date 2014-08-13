@@ -52,9 +52,6 @@
   (require 'cl)
   (require 'derived))
 
-(when (featurep 'xemacs)
-  (require 'overlay))
-
 (defun browse-kill-ring-depropertize-string (str)
   "Return a copy of STR with text properties removed."
   (let ((str (copy-sequence str)))
@@ -1001,12 +998,7 @@ directly; use `browse-kill-ring' instead.
             (browse-kill-ring-forward 0)
             (when regexp
               (setq mode-name (concat "Kill Ring [" regexp "]")))
-            (run-hooks 'browse-kill-ring-hook)
-            ;; I will be very glad when I can get rid of this gross
-            ;; hack, which solely exists for XEmacs users.
-            (when (and (featurep 'xemacs)
-                       font-lock-mode)
-              (browse-kill-ring-fontify-region (point-min) (point-max)))))
+            (run-hooks 'browse-kill-ring-hook)))
       (progn
         (setq buffer-read-only t)))))
 
