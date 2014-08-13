@@ -28,6 +28,10 @@ you can install browse-kill-ring from the [Marmalade](http://marmalade-repo.org/
 If you're an Emacs 24 user or you have a recent version of package.el
 you can install browse-kill-ring from the [MELPA](http://melpa.milkbox.net/) repository.
 
+### el-get
+
+If you prefer el-get, you can install browse-kill-ring with <kbd>M-x el-get-install</kbd>.
+
 ### Emacs Prelude
 
 `browse-kill-ring` is naturally part of the
