@@ -1020,20 +1020,19 @@ directly; use `browse-kill-ring' instead.
       (browse-kill-ring-setup buf orig-buf orig-win)
       (pop-to-buffer buf)
       (browse-kill-ring-resize-window)
-      (if (not (eq kill-ring kill-ring-yank-pointer))
-        (progn
-          (while (not stop-search)
-            (setq current-target-string (browse-kill-ring-current-string (current-buffer) (point)))
-            (if (not current-target-string)
+      (unless (eq kill-ring kill-ring-yank-pointer)
+        (while (not stop-search)
+          (setq current-target-string (browse-kill-ring-current-string (current-buffer) (point)))
+          (if (not current-target-string)
               (setq stop-search t)
-              (if (equal current-target-string kill-ring-yank-pointer-string)
+            (if (equal current-target-string kill-ring-yank-pointer-string)
                 (progn
                   (setq search-found t)
                   (setq stop-search t))))
-            (if (not stop-search)
-              (browse-kill-ring-forward 1)))
-          (if (not search-found)
-            (goto-char (point-min))))))))
+          (unless stop-search
+            (browse-kill-ring-forward 1)))
+        (unless search-found
+            (goto-char (point-min)))))))
 
 (provide 'browse-kill-ring)
 
