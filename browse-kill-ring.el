@@ -285,6 +285,10 @@ call `browse-kill-ring' again.")
 (defvar browse-kill-ring-this-buffer-replace-yanked-text nil
   "Whether or not to replace yanked text before an insert.")
 
+(defvar browse-kill-ring-previous-overlay nil
+  "The overlay previously highlighed within the browse-kill-ring
+display buffer.")
+
 (defun browse-kill-ring-mouse-insert (e)
   "Insert the chosen text, and close the *Kill Ring* buffer afterwards."
   (interactive "e")
@@ -527,6 +531,38 @@ If no such overlay, raise an error."
         (delete-active-region))
       (browse-kill-ring-insert-and-highlight str))))
 
+(defun browse-kill-ring-update-highlighed-entry ()
+  (when browse-kill-ring-highlight-current-entry
+    (browse-kill-ring-update-highlighed-entry-1)))
+
+(defun browse-kill-ring-clear-highlighed-entry ()
+  (let ((overs (overlay-lists)))
+        (mapcar #'(lambda (o)
+                    (overlay-put o 'face nil))
+                (nconc (car overs) (cdr overs)))))
+
+(defun browse-kill-ring-update-highlighed-entry-1 ()
+  ;; This assumes that there will only be one overlay found at point,
+  ;; that is the overlay we created to map the browse-kill-ring entry
+  ;; back to the actual kill ring entry index.  If there can ever be
+  ;; "other" overlays in this buffer then we need to improve this
+  ;; code.
+  (let ((current-overlay (car (overlays-at (point)))))
+    (case current-overlay
+      ;; No overlay at point.  Just clear all current highlighting.
+      ((nil entry) (browse-kill-ring-clear-highlighed-entry))
+      ;; Still on the previos overlay.
+      (browse-kill-ring-previous-overlay t)
+      ;; Otherwise, we've changed overlay.  Clear current
+      ;; highlighting, and highlight the new overlay.
+      (t
+       (assert (overlay-get current-overlay
+                            'browse-kill-ring-target) t)
+       (browse-kill-ring-clear-highlighed-entry)
+       (setq browse-kill-ring-previous-overlay current-overlay)
+       (overlay-put current-overlay 'face
+                    browse-kill-ring-current-entry-face)))))
+
 (defun browse-kill-ring-forward (&optional arg)
   "Move forward by ARG `kill-ring' entries."
   (interactive "p")
@@ -553,17 +589,6 @@ If no such overlay, raise an error."
           (goto-char (next-overlay-change (point)))
           (unless (eobp)
             (goto-char (overlay-start (car (overlays-at (point))))))))))
-  ;; This could probably be implemented in a more intelligent manner.
-  ;; Perhaps keep track over the overlay we started from?  That would
-  ;; break when the user moved manually, though.
-  (when (and browse-kill-ring-highlight-current-entry
-             (overlays-at (point)))
-    (let ((overs (overlay-lists))
-          (current-overlay (car (overlays-at (point)))))
-      (mapcar #'(lambda (o)
-                  (overlay-put o 'face nil))
-              (nconc (car overs) (cdr overs)))
-      (overlay-put current-overlay 'face browse-kill-ring-current-entry-face)))
   (when browse-kill-ring-recenter
     (recenter 1)))
 
@@ -982,6 +1007,10 @@ directly; use `browse-kill-ring' instead.
             ;; Local post-command-hook, only happens in the *Kill
             ;; Ring* buffer
             (add-hook 'post-command-hook 'browse-kill-ring-preview-update nil t)
+            (when browse-kill-ring-highlight-current-entry
+              (add-hook 'post-command-hook
+                        'browse-kill-ring-update-highlighed-entry
+                        nil t))
 ;; Code from Michael Slass <mikesl@wrq.com>
             (message
              (let ((entry (if (= 1 (length kill-ring)) "entry" "entries")))

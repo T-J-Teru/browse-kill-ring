@@ -1,3 +1,22 @@
+2014-08-18 Andrew Burgess <andrew.burgess@embecosm.com>
+	(browse-kill-ring-preview-overlay) New variable, tracks previously
+	highlighted entry in the browse-kill-ring buffer.
+	(browse-kill-ring-update-highlighed-entry) New function, entry
+	point for highlighting entry in browse-kill-ring buffer.  Can be
+	called even if the highlighting is turned off as it contains the
+	check.
+	(browse-kill-ring-clear-highlighted-entry) New function, clears
+	the highlighting off the current entry in the browse-kill-ring
+	buffer.
+	(browse-kill-ring-update-highlighed-entry-1) New function, worker
+	core for browse-kill-ring-update-highlighed-entry, selects correct
+	entry to highlight.
+	(browse-kill-ring-forward) Remove code to update highlighting of
+	entries in the browse-kill-ring buffer.
+	(browse-kill-ring-setup) Register a post-command-hook to update
+	the highlighting of the correct entry in the browse-kill-ring
+	buffer.
+
 2014-08-07 Andrew Burgess <andrew.burgess@embecosm.com>
 	Handle case where kill-ring-yank-pointer is nil (empty kill ring).
 
