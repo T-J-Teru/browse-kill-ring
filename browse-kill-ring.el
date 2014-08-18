@@ -52,32 +52,6 @@
   (require 'cl)
   (require 'derived))
 
-(defun browse-kill-ring-depropertize-string (str)
-  "Return a copy of STR with text properties removed."
-  (let ((str (copy-sequence str)))
-    (set-text-properties 0 (length str) nil str)
-    str))
-
-(cond ((fboundp 'propertize)
-       (defalias 'browse-kill-ring-propertize 'propertize))
-      ;; Maybe save some memory :)
-      ((fboundp 'ibuffer-propertize)
-       (defalias 'browse-kill-ring-propertize 'ibuffer-propertize))
-      (t
-       (defun browse-kill-ring-propertize (string &rest properties)
-         "Return a copy of STRING with text properties added.
-
- [Note: this docstring has been copied from the Emacs 21 version]
-
-First argument is the string to copy.
-Remaining arguments form a sequence of PROPERTY VALUE pairs for text
-properties to add to the result."
-         (let ((str (copy-sequence string)))
-           (add-text-properties 0 (length str)
-                                properties
-                                str)
-           str))))
-
 (defgroup browse-kill-ring nil
   "A package for browsing and inserting the items in `kill-ring'."
   :link '(url-link "https://github.com/browse-kill-ring/browse-kill-ring")
@@ -767,7 +741,7 @@ directly; use `browse-kill-ring' instead.
            (> (length str)
               browse-kill-ring-maximum-display-length))
       (concat (substring str 0 (- browse-kill-ring-maximum-display-length 3))
-              (browse-kill-ring-propertize "..." 'browse-kill-ring-extra t))
+              (propertize "..." 'browse-kill-ring-extra t))
     str))
 
 (defun browse-kill-ring-insert-as-one-line (items)
@@ -776,7 +750,7 @@ directly; use `browse-kill-ring' instead.
       (let* ((item (browse-kill-ring-elide item))
              (len (length item))
              (start 0)
-             (newl (browse-kill-ring-propertize "\\n" 'browse-kill-ring-extra t)))
+             (newl (propertize "\\n" 'browse-kill-ring-extra t)))
         (while (and (< start len)
                     (string-match "\n" item start))
           (insert (substring item start (match-beginning 0))
@@ -805,7 +779,7 @@ directly; use `browse-kill-ring' instead.
     (let ((inhibit-read-only t))
       (insert "\n")
       (when separatep
-        (insert (browse-kill-ring-propertize browse-kill-ring-separator
+        (insert (propertize browse-kill-ring-separator
                                              'browse-kill-ring-extra t
                                              'browse-kill-ring-separator t))
         (insert "\n")))))
@@ -952,7 +926,7 @@ directly; use `browse-kill-ring' instead.
                    browse-kill-ring-maximum-display-length))
                 (items (mapcar
                         (if browse-kill-ring-depropertize
-                            #'browse-kill-ring-depropertize-string
+                            #'substring-no-properties
                           #'copy-sequence)
                         kill-ring)))
             (when (not browse-kill-ring-display-duplicates)
