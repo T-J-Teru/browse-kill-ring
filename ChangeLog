@@ -1,3 +1,12 @@
+2014-08-18 Andrew Burgess <andrew.burgess@embecosm.com>
+	(browse-kill-ring-highlight-inserted-item-style) New variable, the
+	style to use when highlighting newly inserted items.
+	(browse-kill-ring-highlight-inserted) New function, highlights the
+	newly inserted item in the required style, but only if
+	highlighting is turned on.
+	(browse-kill-ring-insert-and-highlight) Move highlighting code out
+	into `browse-kill-ring-highlight-inserted'.
+
 2014-08-07 Andrew Burgess <andrew.burgess@embecosm.com>
 	Handle case where kill-ring-yank-pointer is nil (empty kill ring).
 
