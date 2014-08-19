@@ -159,7 +159,7 @@ See `browse-kill-ring-display-style'."
   :group 'browse-kill-ring)
 
 (defcustom browse-kill-ring-highlight-inserted-item-style
-  'solid
+  'pulse
   "If `browse-kill-ring-highlight-inserted-item' is non-nil, then
 this is the style of highlighting used for the just inserted
 item.  Valid values are `solid' (highlight the inserted text in
