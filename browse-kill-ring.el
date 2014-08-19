@@ -164,8 +164,8 @@ See `browse-kill-ring-display-style'."
 this is the style of highlighting used for the just inserted
 item.  Valid values are `solid' (highlight the inserted text in
 `browse-kill-ring-inserted-item-face' for a fixed period of
-time), or `pulse' (use the `pulse' library to fade out the
-highlighted face gradually)."
+time), or `pulse' (use the `pulse' library, a part of `cedet', to
+fade out the highlighted face gradually)."
   :type '(choice (const solid) (const pulse))
   :group 'browse-kill-ring)
 
