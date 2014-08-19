@@ -536,10 +536,9 @@ If no such overlay, raise an error."
     (browse-kill-ring-update-highlighed-entry-1)))
 
 (defun browse-kill-ring-clear-highlighed-entry ()
-  (let ((overs (overlay-lists)))
-        (mapcar #'(lambda (o)
-                    (overlay-put o 'face nil))
-                (nconc (car overs) (cdr overs)))))
+  (when browse-kill-ring-previous-overlay
+    (assert (overlayp browse-kill-ring-previous-overlay))
+    (overlay-put browse-kill-ring-previous-overlay 'face nil)))
 
 (defun browse-kill-ring-update-highlighed-entry-1 ()
   ;; This assumes that there will only be one overlay found at point,

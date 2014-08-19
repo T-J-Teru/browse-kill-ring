@@ -6,8 +6,7 @@
 	called even if the highlighting is turned off as it contains the
 	check.
 	(browse-kill-ring-clear-highlighted-entry) New function, clears
-	the highlighting off the current entry in the browse-kill-ring
-	buffer.
+	the highlighting off the previous overlay that was highlighted.
 	(browse-kill-ring-update-highlighed-entry-1) New function, worker
 	core for browse-kill-ring-update-highlighed-entry, selects correct
 	entry to highlight.
