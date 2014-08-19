@@ -550,8 +550,8 @@ If no such overlay, raise an error."
   (let ((current-overlay (car (overlays-at (point)))))
     (case current-overlay
       ;; No overlay at point.  Just clear all current highlighting.
-      ((nil entry) (browse-kill-ring-clear-highlighed-entry))
-      ;; Still on the previos overlay.
+      ((nil) (browse-kill-ring-clear-highlighed-entry))
+      ;; Still on the previous overlay.
       (browse-kill-ring-previous-overlay t)
       ;; Otherwise, we've changed overlay.  Clear current
       ;; highlighting, and highlight the new overlay.
