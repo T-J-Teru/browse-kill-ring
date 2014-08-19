@@ -356,7 +356,7 @@ well."
 
 (defun browse-kill-ring-prepend-insert (&optional quit)
   "Like `browse-kill-ring-insert', but it places the entry at the beginning
-of the buffer as opposed to point."
+of the buffer as opposed to point.  Point is left unchanged after inserting."
   (interactive "P")
   (browse-kill-ring-do-prepend-insert (current-buffer)
                                       (point))
@@ -408,29 +408,33 @@ of the *Kill Ring*."
          (sit-for 0.5)
          (delete-overlay o))))))
 
+(defmacro browse-kill-ring-prepare-to-insert (&rest body)
+  "Restore window and buffer ready to insert `kill-ring' item.
+Temporarily restore `browse-kill-ring-original-window' and
+`browse-kill-ring-original-buffer' then evaluate BODY."
+  `(with-selected-window browse-kill-ring-original-window
+     (with-current-buffer browse-kill-ring-original-buffer
+       (progn ,@body))))
+
 (defun browse-kill-ring-insert-and-highlight (str)
   "Helper function to insert text at point, highlighting it if appropriate."
-  (let ((before-insert (point)))
-    (let (deactivate-mark)
-      (insert-for-yank str)
-      (mapc
-       (lambda (w)
-         (when (eq (current-buffer) (window-buffer w))
-           (set-window-point w (point))))
-       (window-list)))
-
-    (browse-kill-ring-highlight-inserted before-insert (point))))
+      (let ((before-insert (point)))
+        (let (deactivate-mark)
+          (insert-for-yank str))
+        (browse-kill-ring-highlight-inserted
+         before-insert
+         (point))))
 
 (defun browse-kill-ring-do-prepend-insert (buf pt)
   (let ((str (browse-kill-ring-current-string buf pt)))
-    (with-current-buffer browse-kill-ring-original-buffer
-      (save-excursion
-        (goto-char (point-min))
-        (browse-kill-ring-insert-and-highlight str)))))
+    (browse-kill-ring-prepare-to-insert
+     (save-excursion
+       (goto-char (point-min))
+       (browse-kill-ring-insert-and-highlight str)))))
 
 (defun browse-kill-ring-append-insert (&optional quit)
   "Like `browse-kill-ring-insert', but places the entry at the end of the
-buffer as opposed to point."
+buffer as opposed to point.  Point is left unchanged after inserting."
   (interactive "P")
   (browse-kill-ring-do-append-insert (current-buffer)
                                      (point))
@@ -464,10 +468,10 @@ of the *Kill Ring*."
 
 (defun browse-kill-ring-do-append-insert (buf pt)
   (let ((str (browse-kill-ring-current-string buf pt)))
-    (with-current-buffer browse-kill-ring-original-buffer
-      (save-excursion
-        (goto-char (point-max))
-        (browse-kill-ring-insert-and-highlight str)))))
+    (browse-kill-ring-prepare-to-insert
+     (save-excursion
+       (goto-char (point-max))
+       (browse-kill-ring-insert-and-highlight str)))))
 
 (defun browse-kill-ring-delete ()
   "Remove the item at point from the `kill-ring'."
@@ -517,13 +521,16 @@ If no such overlay, raise an error."
 
 (defun browse-kill-ring-do-insert (buf pt)
   (let ((str (browse-kill-ring-current-string buf pt)))
-    (setq kill-ring-yank-pointer (browse-kill-ring-current-kill-ring-yank-pointer buf pt))
-    (with-current-buffer browse-kill-ring-original-buffer
-      (when browse-kill-ring-this-buffer-replace-yanked-text
-        (delete-region (mark) (point)))
-      (when (and delete-selection-mode (not buffer-read-only) transient-mark-mode mark-active)
-        (delete-active-region))
-      (browse-kill-ring-insert-and-highlight str))))
+    (setq kill-ring-yank-pointer
+          (browse-kill-ring-current-kill-ring-yank-pointer buf pt))
+    (browse-kill-ring-prepare-to-insert
+     (when browse-kill-ring-this-buffer-replace-yanked-text
+       (delete-region (mark) (point)))
+     (when (and delete-selection-mode
+                (not buffer-read-only)
+                transient-mark-mode mark-active)
+       (delete-active-region))
+     (browse-kill-ring-insert-and-highlight str))))
 
 (defun browse-kill-ring-forward (&optional arg)
   "Move forward by ARG `kill-ring' entries."
