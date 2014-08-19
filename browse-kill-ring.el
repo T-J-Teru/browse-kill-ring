@@ -286,8 +286,7 @@ call `browse-kill-ring' again.")
   "Whether or not to replace yanked text before an insert.")
 
 (defvar browse-kill-ring-previous-overlay nil
-  "The overlay previously highlighed within the browse-kill-ring
-display buffer.")
+  "Previous overlay within *Kill Ring* buffer.")
 
 (defun browse-kill-ring-mouse-insert (e)
   "Insert the chosen text, and close the *Kill Ring* buffer afterwards."
