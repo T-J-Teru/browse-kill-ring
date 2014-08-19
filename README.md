@@ -48,6 +48,27 @@ Optionally, you can map <kbd>M-y</kbd> to `browse-kill-ring` by adding the form
 Alternatively you can map `browse-kill-ring` to another key combination,
 for example `(global-set-key "\C-cy" 'browse-kill-ring)`.
 
+### Additional Configuration
+
+The best place to learn about configuring `browse-kill-ring` is through
+the usual emacs help mechanism, the following is a brief summary of
+some interesting configuration variables.
+
+- Setting `browse-kill-ring-highlight-current-entry` to `t` will cause the
+  item in the `*Kill Ring*` that will be inserted, to be highlighted.
+
+- Setting `browse-kill-ring-highlight-inserted-item` to `t` will cause the
+  item that has just been inserted to be highlighted.
+
+- Setting `browse-kill-ring-highlight-inserted-item-style` controls how
+  the item that has just been inserted is highlighted.  This will only
+  have an effect when `browse-kill-ring-highlight-inserted-item` is `t`.
+  The possible values for this are `solid` or `pulse`, the `solid` style
+  highlights the inserted item for a fixed period of time.  The `pulse`
+  style uses the `pulse` library from `cedet` (which is a part of recent
+  emacs versions) to fade out the highlighting over a short period of
+  time.
+
 ## Known issues
 
 Check out the project's
