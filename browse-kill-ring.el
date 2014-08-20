@@ -129,6 +129,17 @@ See `browse-kill-ring-display-style'."
   :type 'boolean
   :group 'browse-kill-ring)
 
+(defcustom browse-kill-ring-highlight-inserted-item-style
+  'pulse
+  "If `browse-kill-ring-highlight-inserted-item' is non-nil, then
+this is the style of highlighting used for the just inserted
+item.  Valid values are `solid' (highlight the inserted text in
+`browse-kill-ring-inserted-item-face' for a fixed period of
+time), or `pulse' (use the `pulse' library, a part of `cedet', to
+fade out the highlighted face gradually)."
+  :type '(choice (const solid) (const pulse))
+  :group 'browse-kill-ring)
+
 (defcustom browse-kill-ring-separator-face 'bold
   "The face in which to highlight the `browse-kill-ring-separator'."
   :type 'face
@@ -377,6 +388,26 @@ of the *Kill Ring*."
   (interactive)
   (browse-kill-ring-prepend-insert-and-move t))
 
+(defun browse-kill-ring-highlight-inserted (start end)
+  (when browse-kill-ring-highlight-inserted-item
+    ;; First, load the `pulse' library if needed.
+    (when (eql browse-kill-ring-highlight-inserted-item-style 'pulse)
+      (unless (and (require 'pulse nil t)
+                   (fboundp 'pulse-momentary-highlight-region))
+        (warn "Unable to load `pulse' library")
+        (setq browse-kill-ring-highlight-inserted-item-style 'solid)))
+
+    (case browse-kill-ring-highlight-inserted-item-style
+      ('pulse
+       (let ((pulse-delay .05) (pulse-iterations 10))
+         (pulse-momentary-highlight-region
+          start end browse-kill-ring-inserted-item-face)))
+      ('solid
+       (let ((o (make-overlay start end)))
+         (overlay-put o 'face browse-kill-ring-inserted-item-face)
+         (sit-for 0.5)
+         (delete-overlay o))))))
+
 (defun browse-kill-ring-insert-and-highlight (str)
   "Helper function to insert text at point, highlighting it if appropriate."
   (let ((before-insert (point)))
@@ -388,11 +419,7 @@ of the *Kill Ring*."
            (set-window-point w (point))))
        (window-list)))
 
-    (when browse-kill-ring-highlight-inserted-item
-      (let ((o (make-overlay before-insert (point))))
-        (overlay-put o 'face browse-kill-ring-inserted-item-face)
-        (sit-for 0.5)
-        (delete-overlay o)))))
+    (browse-kill-ring-highlight-inserted before-insert (point))))
 
 (defun browse-kill-ring-do-prepend-insert (buf pt)
   (let ((str (browse-kill-ring-current-string buf pt)))
