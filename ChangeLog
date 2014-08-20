@@ -1,11 +1,11 @@
-2014-08-18 Andrew Burgess <andrew.burgess@embecosm.com>
-	(browse-kill-ring-highlight-inserted-item-style) New variable, the
-	style to use when highlighting newly inserted items.
-	(browse-kill-ring-highlight-inserted) New function, highlights the
-	newly inserted item in the required style, but only if
-	highlighting is turned on.
-	(browse-kill-ring-insert-and-highlight) Move highlighting code out
-	into `browse-kill-ring-highlight-inserted'.
+2014-08-20 Andrew Burgess <andrew.burgess@embecosm.com>
+	Added variable `browse-kill-ring-highlight-inserted-item-style'
+	which selects the style to use when highlighting the inserted kill
+	ring item.  The choices are `solid' (the old style, solid face for
+	0.5 seconds) and `pulse' (which uses the pulse library from cedet,
+	included with recent versions of emacs, to fade the highlighting
+	out over 0.5 seconds).  The default is `pulse' but this will fall
+	back to `solid' if the pulse library is not available.
 
 2014-08-07 Andrew Burgess <andrew.burgess@embecosm.com>
 	Handle case where kill-ring-yank-pointer is nil (empty kill ring).
