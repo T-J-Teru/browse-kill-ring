@@ -50,9 +50,7 @@ for example `(global-set-key "\C-cy" 'browse-kill-ring)`.
 
 ### Additional Configuration
 
-The best place to learn about configuring `browse-kill-ring` is through
-the usual emacs help mechanism, the following is a brief summary of
-some interesting configuration variables.
+The `browse-kill-ring` package can be customized through the usual emacs customization interface using `M-x customize-group <RET> browse-kill-ring <RET>`.  The following list contains some of the interesting configuration variables:
 
 - Setting `browse-kill-ring-highlight-current-entry` to `t` will cause the
   item in the `*Kill Ring*` that will be inserted, to be highlighted.
@@ -68,6 +66,16 @@ some interesting configuration variables.
   style uses the `pulse` library from `cedet` (which is a part of recent
   emacs versions) to fade out the highlighting over a short period of
   time.
+
+- The variable `browse-kill-ring-separator` is the string that is placed
+  between items in the `*Kill Ring*` buffer between entries.
+
+- The variable `browse-kill-ring-separator-face` contains the face used
+  for the separator in the `*Kill Ring*` buffer.
+
+- Setting `browse-kill-ring-show-preview` to `t` will cause a preview of
+  the item under point in the `*Kill Ring*` buffer to be displayed in
+  the original buffer where the item would be inserted.
 
 ## Known issues
 
