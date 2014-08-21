@@ -5,7 +5,7 @@
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: browse-kill-ring <browse-kill-ring@tonotdo.com>
 ;; Created: 7 Apr 2001
-;; Version: 1.6.0
+;; Version: 1.6.1
 ;; URL: https://github.com/browse-kill-ring/browse-kill-ring
 ;; Keywords: convenience
 
@@ -124,20 +124,17 @@ See `browse-kill-ring-display-style'."
   :type 'boolean
   :group 'browse-kill-ring)
 
-(defcustom browse-kill-ring-highlight-inserted-item browse-kill-ring-highlight-current-entry
-  "If non-nil, temporarily highlight the inserted `kill-ring' entry."
-  :type 'boolean
-  :group 'browse-kill-ring)
-
 (defcustom browse-kill-ring-highlight-inserted-item-style
-  'pulse
-  "If `browse-kill-ring-highlight-inserted-item' is non-nil, then
-this is the style of highlighting used for the just inserted
-item.  Valid values are `solid' (highlight the inserted text in
-`browse-kill-ring-inserted-item-face' for a fixed period of
-time), or `pulse' (use the `pulse' library, a part of `cedet', to
-fade out the highlighted face gradually)."
-  :type '(choice (const solid) (const pulse))
+  nil
+  "If non-nil, then temporarily highlight the inserted `kill-ring' entry.
+The value selected controls how the inserted item is highlighted,
+possible values are `solid' (highlight the inserted text for a
+fixed period of time), or `pulse' (use the `pulse' library, a
+part of `cedet', to fade out the highlighting gradually).
+
+The variable `browse-kill-ring-inserted-item-face' contains the
+face used for highlighting."
+  :type '(choice (const nil) (const solid) (const pulse))
   :group 'browse-kill-ring)
 
 (defcustom browse-kill-ring-separator-face 'bold
@@ -389,7 +386,7 @@ of the *Kill Ring*."
   (browse-kill-ring-prepend-insert-and-move t))
 
 (defun browse-kill-ring-highlight-inserted (start end)
-  (when browse-kill-ring-highlight-inserted-item
+  (when browse-kill-ring-highlight-inserted-item-style
     ;; First, load the `pulse' library if needed.
     (when (eql browse-kill-ring-highlight-inserted-item-style 'pulse)
       (unless (and (require 'pulse nil t)
@@ -397,7 +394,7 @@ of the *Kill Ring*."
         (warn "Unable to load `pulse' library")
         (setq browse-kill-ring-highlight-inserted-item-style 'solid)))
 
-    (case browse-kill-ring-highlight-inserted-item-style
+    (ecase browse-kill-ring-highlight-inserted-item-style
       ('pulse
        (let ((pulse-delay .05) (pulse-iterations 10))
          (pulse-momentary-highlight-region
