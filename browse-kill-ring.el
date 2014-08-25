@@ -277,7 +277,7 @@ call `browse-kill-ring' again.")
                  (cons (current-buffer) (point))))
          (buf (car data))
          (pt (cdr data)))
-    (browse-kill-ring-do-insert buf pt))
+    (browse-kill-ring-do-insert buf pt t))
   (browse-kill-ring-quit))
 
 (if (fboundp 'fit-window-to-buffer)
@@ -318,7 +318,8 @@ If optional argument QUIT is non-nil, close the *Kill Ring* buffer as
 well."
   (interactive "P")
   (browse-kill-ring-do-insert (current-buffer)
-                              (point))
+                              (point)
+                              quit)
   (when quit
     (browse-kill-ring-quit)))
 
@@ -328,7 +329,8 @@ If optional argument QUIT is non-nil, close the *Kill Ring* buffer as
 well."
   (interactive "P")
   (browse-kill-ring-do-insert (current-buffer)
-                              (point))
+                              (point)
+                              quit)
   (browse-kill-ring-delete)
   (when quit
     (browse-kill-ring-quit)))
@@ -343,7 +345,7 @@ well."
   (interactive "P")
   (let ((buf (current-buffer))
         (pt (point)))
-    (browse-kill-ring-do-insert buf pt)
+    (browse-kill-ring-do-insert buf pt quit)
     (let ((str (browse-kill-ring-current-string buf pt)))
       (browse-kill-ring-delete)
       (kill-new str)))
@@ -361,7 +363,8 @@ well."
 of the buffer as opposed to point.  Point is left unchanged after inserting."
   (interactive "P")
   (browse-kill-ring-do-prepend-insert (current-buffer)
-                                      (point))
+                                      (point)
+                                      quit)
   (when quit
     (browse-kill-ring-quit)))
 
@@ -376,7 +379,7 @@ of the *Kill Ring*."
   (interactive "P")
   (let ((buf (current-buffer))
         (pt (point)))
-    (browse-kill-ring-do-prepend-insert buf pt)
+    (browse-kill-ring-do-prepend-insert buf pt quit)
     (let ((str (browse-kill-ring-current-string buf pt)))
       (browse-kill-ring-delete)
       (kill-new str)))
@@ -411,13 +414,18 @@ of the *Kill Ring*."
          (sit-for 0.5)
          (delete-overlay o))))))
 
-(defmacro browse-kill-ring-prepare-to-insert (&rest body)
+(defmacro browse-kill-ring-prepare-to-insert (quit &rest body)
   "Restore window and buffer ready to insert `kill-ring' item.
 Temporarily restore `browse-kill-ring-original-window' and
 `browse-kill-ring-original-buffer' then evaluate BODY."
-  `(with-selected-window browse-kill-ring-original-window
-     (with-current-buffer browse-kill-ring-original-buffer
-       (progn ,@body))))
+  `(progn
+     (browse-kill-ring-clear-preview)
+     (with-selected-window browse-kill-ring-original-window
+       (with-current-buffer browse-kill-ring-original-buffer
+         (progn ,@body)
+         (unless ,quit
+           (browse-kill-ring-setup-preview-overlay
+            (current-buffer)))))))
 
 (defun browse-kill-ring-insert-and-highlight (str)
   "Helper function to insert text at point, highlighting it if appropriate."
@@ -428,9 +436,10 @@ Temporarily restore `browse-kill-ring-original-window' and
          before-insert
          (point))))
 
-(defun browse-kill-ring-do-prepend-insert (buf pt)
+(defun browse-kill-ring-do-prepend-insert (buf pt quit)
   (let ((str (browse-kill-ring-current-string buf pt)))
     (browse-kill-ring-prepare-to-insert
+     quit
      (save-excursion
        (goto-char (point-min))
        (browse-kill-ring-insert-and-highlight str)))))
@@ -440,7 +449,8 @@ Temporarily restore `browse-kill-ring-original-window' and
 buffer as opposed to point.  Point is left unchanged after inserting."
   (interactive "P")
   (browse-kill-ring-do-append-insert (current-buffer)
-                                     (point))
+                                     (point)
+                                     quit)
   (when quit
     (browse-kill-ring-quit)))
 
@@ -455,7 +465,7 @@ of the *Kill Ring*."
   (interactive "P")
   (let ((buf (current-buffer))
         (pt (point)))
-    (browse-kill-ring-do-append-insert buf pt)
+    (browse-kill-ring-do-append-insert buf pt quit)
     (let ((str (browse-kill-ring-current-string buf pt)))
       (browse-kill-ring-delete)
       (kill-new str)))
@@ -469,9 +479,10 @@ of the *Kill Ring*."
   (interactive)
   (browse-kill-ring-append-insert-and-move t))
 
-(defun browse-kill-ring-do-append-insert (buf pt)
+(defun browse-kill-ring-do-append-insert (buf pt quit)
   (let ((str (browse-kill-ring-current-string buf pt)))
     (browse-kill-ring-prepare-to-insert
+     quit
      (save-excursion
        (goto-char (point-max))
        (browse-kill-ring-insert-and-highlight str)))))
@@ -522,11 +533,12 @@ If no such overlay, raise an error."
       (unless no-error
         (error "No kill ring item here"))))
 
-(defun browse-kill-ring-do-insert (buf pt)
+(defun browse-kill-ring-do-insert (buf pt quit)
   (let ((str (browse-kill-ring-current-string buf pt)))
     (setq kill-ring-yank-pointer
           (browse-kill-ring-current-kill-ring-yank-pointer buf pt))
     (browse-kill-ring-prepare-to-insert
+     quit
      (when browse-kill-ring-this-buffer-replace-yanked-text
        (delete-region (mark) (point)))
      (when (and delete-selection-mode
@@ -651,8 +663,7 @@ entry."
 (defun browse-kill-ring-quit ()
   "Take the action specified by `browse-kill-ring-quit-action'."
   (interactive)
-  (when browse-kill-ring-preview-overlay
-    (delete-overlay browse-kill-ring-preview-overlay))
+  (browse-kill-ring-clear-preview)
   (case browse-kill-ring-quit-action
     (save-and-restore
       (if (< emacs-major-version 24)
@@ -939,11 +950,11 @@ directly; use `browse-kill-ring' instead.
           (setq i (1- i)))))
     result-yank-pointer))
 
-(defun browse-kill-ring-setup (kill-buf orig-buf window &optional regexp window-config)
-  (setq browse-kill-ring-this-buffer-replace-yanked-text
-        (and
-         browse-kill-ring-replace-yank
-         (eq last-command 'yank)))
+(defun browse-kill-ring-clear-preview ()
+  (when browse-kill-ring-preview-overlay
+    (delete-overlay browse-kill-ring-preview-overlay)))
+
+(defun browse-kill-ring-setup-preview-overlay (orig-buf)
   (with-current-buffer orig-buf
     (let* ((will-replace
            (or browse-kill-ring-this-buffer-replace-yanked-text
@@ -955,12 +966,18 @@ directly; use `browse-kill-ring' instead.
                     (max (point) (mark))
                   (point))))
       (when browse-kill-ring-show-preview
-        (when browse-kill-ring-preview-overlay
-          (delete-overlay browse-kill-ring-preview-overlay))
+        (browse-kill-ring-clear-preview)
         (setq browse-kill-ring-preview-overlay
               (make-overlay start end orig-buf))
         (overlay-put browse-kill-ring-preview-overlay
-                     'invisible t))))
+                     'invisible t)))))
+
+(defun browse-kill-ring-setup (kill-buf orig-buf window &optional regexp window-config)
+  (setq browse-kill-ring-this-buffer-replace-yanked-text
+        (and
+         browse-kill-ring-replace-yank
+         (eq last-command 'yank)))
+  (browse-kill-ring-setup-preview-overlay orig-buf)
   (with-current-buffer kill-buf
     (unwind-protect
         (progn
