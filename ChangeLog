@@ -1,3 +1,9 @@
+2014-08-25 Andrew Burgess <andrew.burgess@embecosm.com>
+	Highlighting of the current entry in the *Kill Ring* buffer now
+	works with manual point movement rather than just with the
+	`browse-kill-ring-forward' function.  Also moving the point with
+	the mouse will also update the highlighting correctly now.
+
 2014-08-20 Andrew Burgess <andrew.burgess@embecosm.com>
 	Added variable `browse-kill-ring-highlight-inserted-item-style'
 	which selects the style to use when highlighting the inserted kill
