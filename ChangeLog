@@ -1,3 +1,10 @@
+2014-08-26 Andrew Burgess <andrew.burgess@embecosm.com>
+	When editing entries in the `kill-ring' place a header line in the
+	edit buffer with a short key guide.  Kill the edit buffer when
+	editing is finished rather than just burying it.  Add an abort key
+	mapping to allow the edit buffer to be closed without saving the
+	changes.
+
 2014-08-25 Andrew Burgess <andrew.burgess@embecosm.com>
 	Highlighting of the current entry in the *Kill Ring* buffer now
 	works with manual point movement rather than just with the
