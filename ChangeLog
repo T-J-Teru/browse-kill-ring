@@ -1,3 +1,11 @@
+2014-08-29 Andrew Burgess <andrew.burgess@embecosm.com>
+	Remove `browse-kill-ring-highlight-inserted-item-style' and
+	instead allow `browse-kill-ring-highlight-inserted-item' to take
+	the value `pulse' or `solid' as well as `nil' and `t'.  It's type
+	is changed to `choice' accordingly.  The value `t' now means use
+	the default highlight style, which is currently `pulse', `nil'
+	still means turn off highlighting of inserted items.
+
 2014-08-25 Andrew Burgess <andrew.burgess@embecosm.com>
 	Highlighting of the current entry in the *Kill Ring* buffer now
 	works with manual point movement rather than just with the

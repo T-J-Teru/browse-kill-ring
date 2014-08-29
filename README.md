@@ -55,17 +55,16 @@ The `browse-kill-ring` package can be customized through the usual emacs customi
 - Setting `browse-kill-ring-highlight-current-entry` to `t` will cause the
   item in the `*Kill Ring*` that will be inserted, to be highlighted.
 
-- Setting `browse-kill-ring-highlight-inserted-item` to `t` will cause the
-  item that has just been inserted to be highlighted.
-
-- Setting `browse-kill-ring-highlight-inserted-item-style` controls how
-  the item that has just been inserted is highlighted.  This will only
-  have an effect when `browse-kill-ring-highlight-inserted-item` is `t`.
-  The possible values for this are `solid` or `pulse`, the `solid` style
-  highlights the inserted item for a fixed period of time.  The `pulse`
-  style uses the `pulse` library from `cedet` (which is a part of recent
-  emacs versions) to fade out the highlighting over a short period of
-  time.
+- Setting `browse-kill-ring-highlight-inserted-item` to non-nil will
+  cause the item that has just been inserted to be highlighted.
+  Possible values to which this variable can be set are `nil`,
+  `pulse`, `solid`, or `t`.  The value `nil` turns highlighting off,
+  the value `pulse` uses the `pulse` library from `cedet` (which is a
+  part of recent emacs versions) to highlight the inserted item then
+  fade the highlighting out over a short period of time.  The value
+  `solid` highlights the inserted item in a fixed face for a short
+  period of time.  The value `t` will use the default style for
+  highlighting the inserted item, this is currently `pulse`.
 
 - The variable `browse-kill-ring-separator` is the string that is placed
   between items in the `*Kill Ring*` buffer between entries.
