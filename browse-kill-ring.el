@@ -734,8 +734,10 @@ You most likely do not want to call `browse-kill-ring-edit-mode'
 directly; use `browse-kill-ring' instead.
 
 \\{browse-kill-ring-edit-mode-map}"
-  (define-key browse-kill-ring-edit-mode-map (kbd "C-c C-c")
-    'browse-kill-ring-edit-finish))
+  (define-key browse-kill-ring-edit-mode-map
+    (kbd "C-c C-c") 'browse-kill-ring-edit-finish)
+  (define-key browse-kill-ring-edit-mode-map
+    (kbd "C-c C-k") 'browse-kill-ring-edit-abort))
 
 (defvar browse-kill-ring-edit-target nil)
 (make-variable-buffer-local 'browse-kill-ring-edit-target)
@@ -758,9 +760,11 @@ directly; use `browse-kill-ring' instead.
       (goto-char (point-min))
       (browse-kill-ring-resize-window)
       (browse-kill-ring-edit-mode)
-      (message "%s"
-               (substitute-command-keys
-                "Use \\[browse-kill-ring-edit-finish] to finish editing."))
+      (setq header-line-format
+	    '(:eval
+	      (substitute-command-keys
+	       "Edit, then \\[browse-kill-ring-edit-finish] to \
+update entry and quit -- \\[browse-kill-ring-edit-abort] to abort.")))
       (setq browse-kill-ring-edit-target target-cell))))
 
 (defun browse-kill-ring-edit-finish ()
@@ -770,7 +774,20 @@ directly; use `browse-kill-ring' instead.
       (setcar browse-kill-ring-edit-target (buffer-string))
     (when (y-or-n-p "The item has been deleted; add to front? ")
       (push (buffer-string) kill-ring)))
-  (bury-buffer)
+  (kill-buffer)
+  ;; The user might have rearranged the windows
+  (when (eq major-mode 'browse-kill-ring-mode)
+    (browse-kill-ring-setup (current-buffer)
+                            browse-kill-ring-original-buffer
+                            browse-kill-ring-original-window
+                            nil
+                            browse-kill-ring-original-window-config)
+    (browse-kill-ring-resize-window)))
+
+(defun browse-kill-ring-edit-abort ()
+  "Abort the edit of the `kill-ring' item."
+  (interactive)
+  (kill-buffer)
   ;; The user might have rearranged the windows
   (when (eq major-mode 'browse-kill-ring-mode)
     (browse-kill-ring-setup (current-buffer)
