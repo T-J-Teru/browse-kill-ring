@@ -1,3 +1,9 @@
+2014-09-01 Andrew Burgess <andrew.burgess@embecosm.com>
+	Adjust mechanism used to restore buffer and window before
+	inserting items from the `kill-ring', this should resolve issues
+	when there are multiple frames or windows open onto the same
+	buffer with different values for point.
+
 2014-08-29 Andrew Burgess <andrew.burgess@embecosm.com>
 	Remove `browse-kill-ring-highlight-inserted-item-style' and
 	instead allow `browse-kill-ring-highlight-inserted-item' to take
