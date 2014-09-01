@@ -765,6 +765,9 @@ directly; use `browse-kill-ring' instead.
 	      (substitute-command-keys
 	       "Edit, then \\[browse-kill-ring-edit-finish] to \
 update entry and quit -- \\[browse-kill-ring-edit-abort] to abort.")))
+      (when browse-kill-ring-show-preview
+        (add-hook 'post-command-hook
+                  'browse-kill-ring-preview-update-for-edit nil t))
       (setq browse-kill-ring-edit-target target-cell))))
 
 (defun browse-kill-ring-edit-finish ()
@@ -919,6 +922,12 @@ current point if not specified)."
   (let ((new-text (browse-kill-ring-current-string
                    (current-buffer) (or pt (point)) t)))
     (browse-kill-ring-preview-update-text new-text)))
+
+(defun browse-kill-ring-preview-update-for-edit ()
+  "Update `browse-kill-ring-preview-overlay' after edits.
+Callback triggered after a change in the *Kill Ring Edit* buffer,
+update the preview in the original buffer."
+  (browse-kill-ring-preview-update-text (buffer-string)))
 
 (defun browse-kill-ring-current-index (buf pt)
   "Return current index."
