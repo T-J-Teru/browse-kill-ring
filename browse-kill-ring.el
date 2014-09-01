@@ -901,16 +901,24 @@ update entry and quit -- \\[browse-kill-ring-edit-abort] to abort.")))
                           browse-kill-ring-original-window)
   (browse-kill-ring-resize-window))
 
-(defun browse-kill-ring-preview-update (&optional pt)
-  "Update `browse-kill-ring-preview-overlay' to show the
-  current text as if it were inserted."
-  (let* ((new-text (browse-kill-ring-current-string
-                    (current-buffer) (or pt (point)) t))
-         ;; If new-text is nil, replacement should be nil too.
-         (replacement (when new-text
-                        (propertize new-text 'face 'highlight))))
+(defun browse-kill-ring-preview-update-text (preview-text)
+  "Update `browse-kill-ring-preview-overlay' to show `PREVIEW-TEXT`."
+  ;; If preview-text is nil, replacement should be nil too.
+  (assert (overlayp browse-kill-ring-preview-overlay))
+  (let ((replacement (when preview-text
+                       (propertize preview-text 'face 'highlight))))
     (overlay-put browse-kill-ring-preview-overlay
                  'before-string replacement)))
+
+(defun browse-kill-ring-preview-update-by-position (&optional pt)
+  "Update `browse-kill-ring-preview-overlay' to match item at PT.
+This function is called whenever the selection in the `*Kill
+Ring*' buffer is adjusted, the `browse-kill-ring-preview-overlay'
+is udpated to preview the text of the selection at PT (or the
+current point if not specified)."
+  (let ((new-text (browse-kill-ring-current-string
+                   (current-buffer) (or pt (point)) t)))
+    (browse-kill-ring-preview-update-text new-text)))
 
 (defun browse-kill-ring-current-index (buf pt)
   "Return current index."
@@ -1024,11 +1032,12 @@ update entry and quit -- \\[browse-kill-ring-edit-abort] to abort.")))
                                 browse-kill-ring-display-style))
                      items)
             (when browse-kill-ring-show-preview
-              (browse-kill-ring-preview-update (point-min))
+              (browse-kill-ring-preview-update-by-position (point-min))
               ;; Local post-command-hook, only happens in the *Kill
               ;; Ring* buffer
               (add-hook 'post-command-hook
-                        'browse-kill-ring-preview-update nil t))
+                        'browse-kill-ring-preview-update-by-position
+                        nil t))
             (when browse-kill-ring-highlight-current-entry
               (add-hook 'post-command-hook
                         'browse-kill-ring-update-highlighed-entry
