@@ -1,4 +1,8 @@
 2014-09-01 Andrew Burgess <andrew.burgess@embecosm.com>
+	After editing entries from the `*Kill Ring*' reselect the item in
+	the `*Kill Ring*' buffer.
+
+2014-09-01 Andrew Burgess <andrew.burgess@embecosm.com>
 	Factor out code from `browse-kill-ring' to find a matching entry
 	in the `kill-ring' creating `browse-kill-ring-find-entry', this
 	will be used in a later commit.  Should be no user visible changes
