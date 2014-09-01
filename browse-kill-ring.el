@@ -486,13 +486,23 @@ of the *Kill Ring*."
       (setq buffer-read-only nil)
       (delete-region (overlay-start over) (1+ (overlay-end over)))
       (setq kill-ring (delete target kill-ring))
-      (when (get-text-property (point) 'browse-kill-ring-extra)
+      (cond
+       ;; Don't try to delete anything else in an empty buffer.
+       ((and (bobp) (eobp)) t)
+       ;; The last entry was deleted, remove the preceeding separator.
+       ((eobp)
+        (progn
+          (browse-kill-ring-forward -1)
+          (let ((over (browse-kill-ring-target-overlay-at (point))))
+            (delete-region (1+ (overlay-end over)) (point-max)))))
+       ;; Deleted a middle entry, delete following separator.
+       ((get-text-property (point) 'browse-kill-ring-extra)
         (let ((prev (previous-single-property-change (point) 'browse-kill-ring-extra))
               (next (next-single-property-change (point) 'browse-kill-ring-extra)))
           (when prev (incf prev))
           (when next (incf next))
           (delete-region (or prev (point-min)) (or next (point-max))))))
-    (setq buffer-read-only t))
+    (setq buffer-read-only t)))
   (browse-kill-ring-resize-window)
   (browse-kill-ring-forward 0))
 

@@ -1,4 +1,8 @@
 2014-09-01 Andrew Burgess <andrew.burgess@embecosm.com>
+	When deleting the last item in the *Kill Ring* buffer, also delete
+	the preceding separator.
+
+2014-09-01 Andrew Burgess <andrew.burgess@embecosm.com>
 	When editing entries in the `kill-ring' place a header line in the
 	edit buffer with a short key guide.  Kill the edit buffer when
 	editing is finished rather than just burying it.  Add an abort key
