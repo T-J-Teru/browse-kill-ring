@@ -1,4 +1,14 @@
 2014-09-01 Andrew Burgess <andrew.burgess@embecosm.com>
+	When editing an item from the `kill-ring', if the preview is
+	turned on, then update the preview live while the edit is being
+	made.
+
+2014-09-01 Andrew Burgess <andrew.burgess@embecosm.com>
+	Split `browse-kill-ring-preview-update' into two functions so the
+	new worker code, `browse-kill-ring-preview-update-text' can be
+	reused in the next commit.  No user visible change from this.
+
+2014-09-01 Andrew Burgess <andrew.burgess@embecosm.com>
 	When editing entries in the `kill-ring' place a header line in the
 	edit buffer with a short key guide.  Kill the edit buffer when
 	editing is finished rather than just burying it.  Add an abort key
