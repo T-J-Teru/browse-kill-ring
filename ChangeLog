@@ -1,4 +1,14 @@
 2014-09-01 Andrew Burgess <andrew.burgess@embecosm.com>
+	After editing entries from the `*Kill Ring*' reselect the item in
+	the `*Kill Ring*' buffer.
+
+2014-09-01 Andrew Burgess <andrew.burgess@embecosm.com>
+	Factor out code from `browse-kill-ring' to find a matching entry
+	in the `kill-ring' creating `browse-kill-ring-find-entry', this
+	will be used in a later commit.  Should be no user visible changes
+	from this commit.
+
+2014-09-01 Andrew Burgess <andrew.burgess@embecosm.com>
 	When editing entries in the `kill-ring' place a header line in the
 	edit buffer with a short key guide.  Kill the edit buffer when
 	editing is finished rather than just burying it.  Add an abort key
