@@ -661,8 +661,7 @@ entry."
 (defun browse-kill-ring-quit ()
   "Take the action specified by `browse-kill-ring-quit-action'."
   (interactive)
-  (when browse-kill-ring-preview-overlay
-    (delete-overlay browse-kill-ring-preview-overlay))
+  (browse-kill-ring-cleanup-on-exit)
   (case browse-kill-ring-quit-action
     (save-and-restore
       (if (< emacs-major-version 24)
@@ -990,6 +989,15 @@ update the preview in the original buffer."
           (setq i (1- i)))))
     result-yank-pointer))
 
+(defun browse-kill-ring-cleanup-on-exit ()
+  "Function called when the user is finished with `browse-kill-ring'.
+This function performs any cleanup that is required when the user
+has finished interacting with the `*Kill Ring*' buffer.  For now
+the only cleanup performed is to remove the preview overlay, if
+it's turned on."
+  (when browse-kill-ring-preview-overlay
+    (delete-overlay browse-kill-ring-preview-overlay)))
+
 (defun browse-kill-ring-setup (kill-buf orig-buf window &optional regexp window-config)
   (setq browse-kill-ring-this-buffer-replace-yanked-text
         (and
@@ -1063,6 +1071,9 @@ update the preview in the original buffer."
               ;; Ring* buffer
               (add-hook 'post-command-hook
                         'browse-kill-ring-preview-update-by-position
+                        nil t)
+              (add-hook 'kill-buffer-hook
+                        'browse-kill-ring-cleanup-on-exit
                         nil t))
             (when browse-kill-ring-highlight-current-entry
               (add-hook 'post-command-hook

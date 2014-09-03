@@ -1,4 +1,10 @@
 2014-09-03 Andrew Burgess <andrew.burgess@embecosm.com>
+	Register a `kill-buffer-hook' to ensure that the preview is
+	removed even if the `*Kill Ring*' bufer is killed in an unexpected
+	way, that is, by not calling `browse-kill-ring-quit' but calling
+	`kill-buffer' directly.
+
+2014-09-03 Andrew Burgess <andrew.burgess@embecosm.com>
 	When editing an item from the `kill-ring', if the preview is
 	turned on, then update the preview live while the edit is being
 	made.
