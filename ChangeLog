@@ -1,4 +1,10 @@
 2014-09-03 Andrew Burgess <andrew.burgess@embecosm.com>
+	Disable the preview overlay before inserting the item from the
+	`kill-ring', then reenable once the item has been inserted, moving
+	the preview as appropriate, this ensures that when inserting
+	multiple items the preview continues to be useful.
+
+2014-09-03 Andrew Burgess <andrew.burgess@embecosm.com>
 	When editing an item from the `kill-ring', if the preview is
 	turned on, then update the preview live while the edit is being
 	made.
