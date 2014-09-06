@@ -1,3 +1,9 @@
+2014-09-06 Andrew Burgess <andrew.burgess@embecosm.com>
+	Register a `kill-buffer-hook' to ensure that the preview is
+	removed even if the `*Kill Ring*' bufer is killed in an unexpected
+	way, that is, by not calling `browse-kill-ring-quit' but calling
+	`kill-buffer' directly.
+
 2014-09-03 Andrew Burgess <andrew.burgess@embecosm.com>
 	Disable the preview overlay before inserting the item from the
 	`kill-ring', then reenable once the item has been inserted, moving
