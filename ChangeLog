@@ -1,3 +1,11 @@
+2014-09-07 Andrew Burgess <andrew.burgess@embecosm.com>
+	Perform the quit action early, causing the `*Kill Ring*' buffer to
+	close before inserting the item.  This gives a better user
+	experience when the inserted item is being highlighted, previously
+	the highlighting would keep the *Kill Ring* buffer around for 0.5
+	second acter the user has pressed the insert key, making it appear
+	that `broswse-kill-ring' was slow to respond.
+
 2014-09-06 Andrew Burgess <andrew.burgess@embecosm.com>
 	Register a `kill-buffer-hook' to ensure that the preview is
 	removed even if the `*Kill Ring*' bufer is killed in an unexpected
