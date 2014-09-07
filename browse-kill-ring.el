@@ -886,6 +886,7 @@ update entry and quit -- \\[browse-kill-ring-edit-abort] to abort.")))
     (browse-kill-ring-read-regexp "Display kill ring entries matching")))
   (assert (eq major-mode 'browse-kill-ring-mode))
   (browse-kill-ring-setup (current-buffer)
+                          browse-kill-ring-original-buffer
                           browse-kill-ring-original-window
                           regexp)
   (browse-kill-ring-resize-window))

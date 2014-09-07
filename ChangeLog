@@ -1,3 +1,7 @@
+2014-09-08 Andrew Burgess <andrew.burgess@embecosm.com>
+	Fix bug in `browse-kill-ring-occur' due to change in parameters of
+	`browse-kill-ring-setup'.
+
 2014-09-07 Andrew Burgess <andrew.burgess@embecosm.com>
 	Perform the quit action early, causing the `*Kill Ring*' buffer to
 	close before inserting the item.  This gives a better user
