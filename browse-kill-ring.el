@@ -483,8 +483,8 @@ of the *Kill Ring*."
   (forward-line 0)
   (unwind-protect
     (let* ((over (browse-kill-ring-target-overlay-at (point)))
-           (target (overlay-get over 'browse-kill-ring-target)))
-      (setq buffer-read-only nil)
+           (target (overlay-get over 'browse-kill-ring-target))
+           (inhibit-read-only t))
       (delete-region (overlay-start over) (1+ (overlay-end over)))
       (setq kill-ring (delete target kill-ring))
       (cond
@@ -502,8 +502,7 @@ of the *Kill Ring*."
               (next (next-single-property-change (point) 'browse-kill-ring-extra)))
           (when prev (incf prev))
           (when next (incf next))
-          (delete-region (or prev (point-min)) (or next (point-max))))))
-    (setq buffer-read-only t)))
+          (delete-region (or prev (point-min)) (or next (point-max))))))))
   (browse-kill-ring-resize-window)
   (browse-kill-ring-forward 0))
 
