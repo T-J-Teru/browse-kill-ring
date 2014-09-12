@@ -784,11 +784,28 @@ update entry and quit -- \\[browse-kill-ring-edit-abort] to abort.")))
 (defun browse-kill-ring-edit-finish ()
   "Commit the changes to the `kill-ring'."
   (interactive)
-  (let ((updated-entry (buffer-string)))
+  (let* ((updated-entry (buffer-string))
+         (delete-entry? (string= updated-entry ""))
+         (select-entry nil))
     (if browse-kill-ring-edit-target
-        (setcar browse-kill-ring-edit-target updated-entry)
-      (when (y-or-n-p "The item has been deleted; add to front? ")
-        (push updated-entry kill-ring)))
+        (if delete-entry?
+            ;; Find the previous entry in the list to select, then
+            ;; delete the entry that was just edited to empty.
+            (progn
+              (setq select-entry
+                    (cadr browse-kill-ring-edit-target))
+              (setq kill-ring
+                    (delete (car browse-kill-ring-edit-target) kill-ring))
+              (unless select-entry
+                (setq select-entry (car (last kill-ring)))))
+          ;; Update the entry that was just edited, and arrange to
+          ;; select it.
+          (setcar browse-kill-ring-edit-target updated-entry)
+          (setq select-entry updated-entry))
+      (unless delete-entry?
+        (when (y-or-n-p "The item has been deleted; add to front? ")
+          (push updated-entry kill-ring)
+          (setq select-entry updated-entry))))
     (kill-buffer)
     ;; The user might have rearranged the windows
     (when (eq major-mode 'browse-kill-ring-mode)
@@ -798,7 +815,8 @@ update entry and quit -- \\[browse-kill-ring-edit-abort] to abort.")))
                               nil
                               browse-kill-ring-original-window-config)
       (browse-kill-ring-resize-window)
-      (browse-kill-ring-find-entry updated-entry))))
+      (when select-entry
+        (browse-kill-ring-find-entry select-entry)))))
 
 (defun browse-kill-ring-edit-abort ()
   "Abort the edit of the `kill-ring' item."
