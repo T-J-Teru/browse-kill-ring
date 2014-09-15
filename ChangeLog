@@ -1,3 +1,8 @@
+2014-09-15 Andrew Burgess <andrew.burgess@embecosm.com>
+	When editing entries from the *Kill Ring* buffer, reducing the
+	entry to the empty string will cause the item to be deleted from
+	the kill-ring once the edit is complete.
+
 2014-09-11 Andrew Burgess <andrew.burgess@embecosm.com>
 	Fix for http://bugs.debian.org/224751, inhibit all read only
 	properties before trying to delete an entry from the *Kill Ring*
