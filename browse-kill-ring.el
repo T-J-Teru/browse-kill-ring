@@ -962,14 +962,18 @@ update the preview in the original buffer."
 
 (defun browse-kill-ring-current-index (buf pt)
   "Return current index."
-  (let ((overlay-start-point (overlay-start (car (overlays-at pt))))
+  (let ((overlay-start-point
+         (overlay-start
+          (browse-kill-ring-target-overlay-at pt t)))
         (current-index 0)
         (stop-search nil)
         current-overlay-start-point)
     (save-excursion
       (goto-char (point-min))
       (while (not stop-search)
-        (setq current-overlay-start-point (overlay-start (car (overlays-at (point)))))
+        (setq current-overlay-start-point
+              (overlay-start
+               (browse-kill-ring-target-overlay-at (point))))
         (if (eq overlay-start-point current-overlay-start-point)
             (setq stop-search t))
         (if (not stop-search)
