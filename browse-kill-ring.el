@@ -507,15 +507,17 @@ of the *Kill Ring*."
   (browse-kill-ring-forward 0))
 
 ;; code from browse-kill-ring+.el
-(defun browse-kill-ring-target-overlay-at (position)
+(defun browse-kill-ring-target-overlay-at (position &optional no-error)
   "Return overlay at POSITION that has property `browse-kill-ring-target'.
-If no such overlay, raise an error."
+If no such overlay, raise an error unless NO-ERROR is true, in which
+case retun nil."
   (let ((ovs  (overlays-at (point))))
     (catch 'browse-kill-ring-target-overlay-at
       (dolist (ov  ovs)
         (when (overlay-get ov 'browse-kill-ring-target)
           (throw 'browse-kill-ring-target-overlay-at ov)))
-      (error "No selection-ring item here"))))
+      (unless no-error
+        (error "No selection-ring item here")))))
 
 ;; Helper function for browse-kill-ring-current-string, takes a list of
 ;; overlays and returns the string from the first overlay that has the
