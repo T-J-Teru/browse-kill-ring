@@ -748,30 +748,27 @@ directly; use `browse-kill-ring' instead.
 (defun browse-kill-ring-edit ()
   "Edit the `kill-ring' entry at point."
   (interactive)
-  (let ((overs (overlays-at (point))))
-    (unless overs
-      (error "No kill ring entry here"))
-    (let* ((target (overlay-get (car overs)
-                                'browse-kill-ring-target))
-           (target-cell (member target kill-ring)))
-      (unless target-cell
-        (error "Item deleted from the kill-ring"))
-      (switch-to-buffer (get-buffer-create "*Kill Ring Edit*"))
-      (setq buffer-read-only nil)
-      (erase-buffer)
-      (insert target)
-      (goto-char (point-min))
-      (browse-kill-ring-resize-window)
-      (browse-kill-ring-edit-mode)
-      (setq header-line-format
-	    '(:eval
-	      (substitute-command-keys
-	       "Edit, then \\[browse-kill-ring-edit-finish] to \
+  (let* ((over (browse-kill-ring-target-overlay-at (point)))
+         (target (overlay-get over 'browse-kill-ring-target))
+         (target-cell (member target kill-ring)))
+    (unless target-cell
+      (error "Item deleted from the kill-ring"))
+    (switch-to-buffer (get-buffer-create "*Kill Ring Edit*"))
+    (setq buffer-read-only nil)
+    (erase-buffer)
+    (insert target)
+    (goto-char (point-min))
+    (browse-kill-ring-resize-window)
+    (browse-kill-ring-edit-mode)
+    (setq header-line-format
+          '(:eval
+            (substitute-command-keys
+             "Edit, then \\[browse-kill-ring-edit-finish] to \
 update entry and quit -- \\[browse-kill-ring-edit-abort] to abort.")))
-      (when browse-kill-ring-show-preview
-        (add-hook 'post-command-hook
-                  'browse-kill-ring-preview-update-for-edit nil t))
-      (setq browse-kill-ring-edit-target target-cell))))
+    (when browse-kill-ring-show-preview
+      (add-hook 'post-command-hook
+                'browse-kill-ring-preview-update-for-edit nil t))
+    (setq browse-kill-ring-edit-target target-cell)))
 
 (defun browse-kill-ring-edit-finish ()
   "Commit the changes to the `kill-ring'."
