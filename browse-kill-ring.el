@@ -519,20 +519,13 @@ case retun nil."
       (unless no-error
         (error "No selection-ring item here")))))
 
-;; Helper function for browse-kill-ring-current-string, takes a list of
-;; overlays and returns the string from the first overlay that has the
-;; property. There might be more than just our overlay at this point.
-(defun browse-kill-ring-current-string-1 (overs)
-  (if overs
-      (let ((str (overlay-get (car overs) 'browse-kill-ring-target)))
-        (if str str (browse-kill-ring-current-string-1 (cdr overs))))
-    nil))
-
 ;; Find the string to insert at the point by looking for the overlay.
 (defun browse-kill-ring-current-string (buf pt &optional no-error)
-  (or (browse-kill-ring-current-string-1 (overlays-at pt))
+  (let ((o (browse-kill-ring-target-overlay-at pt t)))
+    (if o
+        (overlay-get o 'browse-kill-ring-target)
       (unless no-error
-        (error "No kill ring item here"))))
+        (error "No kill ring item here")))))
 
 (defun browse-kill-ring-do-insert (buf pt quit)
   (let ((str (browse-kill-ring-current-string buf pt)))
