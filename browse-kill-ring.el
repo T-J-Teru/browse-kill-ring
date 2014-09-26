@@ -577,27 +577,25 @@ case retun nil."
   (interactive "p")
   (beginning-of-line)
   (while (not (zerop arg))
-    (if (< arg 0)
+    (let ((o (browse-kill-ring-target-overlay-at (point) t)))
+      (if (< arg 0)
+          (progn
+            (incf arg)
+            (when o
+              (goto-char (overlay-start o))
+              (setq o nil))
+            (while (not (or o (bobp)))
+              (goto-char (previous-overlay-change (point)))
+              (setq o (browse-kill-ring-target-overlay-at (point) t))))
         (progn
-          (incf arg)
-          (if (overlays-at (point))
-              (progn
-                (goto-char (overlay-start (car (overlays-at (point)))))
-                (goto-char (previous-overlay-change (point)))
-                (goto-char (previous-overlay-change (point))))
-            (progn
-              (goto-char (1- (previous-overlay-change (point))))
-              (unless (bobp)
-                (goto-char (overlay-start (car (overlays-at (point)))))))))
-      (progn
-        (decf arg)
-        (if (overlays-at (point))
-            (progn
-              (goto-char (overlay-end (car (overlays-at (point)))))
-              (goto-char (next-overlay-change (point))))
-          (goto-char (next-overlay-change (point)))
-          (unless (eobp)
-            (goto-char (overlay-start (car (overlays-at (point))))))))))
+          (decf arg)
+          ;; We're on a browse-kill-ring overlay, skip to the end of it.
+          (when o
+            (goto-char (overlay-end o))
+            (setq o nil))
+          (while (not (or o (eobp)))
+            (goto-char (next-overlay-change (point)))
+            (setq o (browse-kill-ring-target-overlay-at (point) t)))))))
   (when browse-kill-ring-recenter
     (recenter 1)))
 
