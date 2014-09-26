@@ -625,17 +625,17 @@ entry."
          current-prefix-arg))
   (let ((orig (point)))
     (browse-kill-ring-forward (if backwards -1 1))
-    (let ((overs (overlays-at (point))))
-      (while (and overs
+    (let ((over (browse-kill-ring-target-overlay-at (point) t)))
+      (while (and over
                   (not (if backwards (bobp) (eobp)))
                   (not (string-match regexp
-                                     (overlay-get (car overs)
+                                     (overlay-get over
                                                   'browse-kill-ring-target))))
         (browse-kill-ring-forward (if backwards -1 1))
-        (setq overs (overlays-at (point))))
-      (unless (and overs
+        (setq over (browse-kill-ring-target-overlay-at (point) t)))
+      (unless (and over
                    (string-match regexp
-                                 (overlay-get (car overs)
+                                 (overlay-get over
                                               'browse-kill-ring-target)))
         (progn
           (goto-char orig)
