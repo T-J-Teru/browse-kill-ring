@@ -551,12 +551,7 @@ case retun nil."
     (overlay-put browse-kill-ring-previous-overlay 'face nil)))
 
 (defun browse-kill-ring-update-highlighed-entry-1 ()
-  ;; This assumes that there will only be one overlay found at point,
-  ;; that is the overlay we created to map the browse-kill-ring entry
-  ;; back to the actual kill ring entry index.  If there can ever be
-  ;; "other" overlays in this buffer then we need to improve this
-  ;; code.
-  (let ((current-overlay (car (overlays-at (point)))))
+  (let ((current-overlay (browse-kill-ring-target-overlay-at (point) t)))
     (case current-overlay
       ;; No overlay at point.  Just clear all current highlighting.
       ((nil) (browse-kill-ring-clear-highlighed-entry))
