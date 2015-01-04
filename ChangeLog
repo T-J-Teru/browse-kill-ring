@@ -1,3 +1,9 @@
+2015-01-02 Andrew Burgess <andrew.burgess@embecosm.com>
+	Unify tail of `browse-kill-ring-finish' and
+	`browse-kill-ring-abort' to increase code reuse.  Improve use of
+	`brose-kill-ring-edit-target' to track when the user is making an
+	edit.
+
 2014-11-04 Toon Claes <toon@tonotdo.com>
 	v2.0 release:
 	Legacy code is removed, README is converted and
