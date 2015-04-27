@@ -1080,8 +1080,9 @@ it's turned on."
             (set-buffer-modified-p nil)
             (goto-char (point-min))
             (browse-kill-ring-forward 0)
-            (when regexp
-              (setq mode-name (concat "Kill Ring [" regexp "]")))
+            (setq mode-name (if regexp
+                                (concat "Kill Ring [" regexp "]")
+                              "Kill Ring"))
             (run-hooks 'browse-kill-ring-hook)))
       (progn
         (setq buffer-read-only t)))))
