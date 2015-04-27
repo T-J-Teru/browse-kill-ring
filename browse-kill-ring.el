@@ -307,26 +307,16 @@ the generated function to perform the post action.
 The possible values for POST-ACTION are 'move or 'delete.  These
 respectively move the inserted entry to the start of the
 `kill-ring' or delete the entry from the `kill-ring'."
-  ;; Return a different list based on POST-ACTION.  Remember that all
-  ;; variables used in the returned lists are quoted here, and will be
-  ;; interpreted within the context of the generated insertion
-  ;; function.
-  (case post-action
-    ('move
-     ;; The 'move post action deletes the current entry from the kill
-     ;; ring and re-kills it to add it back to the top of the ring.
-     ;; If the user is not quiting then update the display.
-     (list
-      '(let ((str (browse-kill-ring-current-string buf pt)))
-         (browse-kill-ring-delete)
-         (kill-new str))
-      '(unless quit
-         (browse-kill-ring-update))))
-      ;; The 'delete post action just deletes the current entry from
-      ;; the kill-ring.
-    ('delete
-     (list '(browse-kill-ring-delete)))
-    (t (error "Unknown post-action: %s" post-action))))
+  ;; Return a list based on POST-ACTION that is included into the
+  ;; generated insertion function to perform the post action.
+  ;; Remember that all variables used in the returned lists are quoted
+  ;; here, and will be interpreted within the context of the generated
+  ;; insertion function.
+  `((browse-kill-ring-do-delete target)
+    ,(when (equal post-action 'move)
+       '(kill-new target))
+    (unless quit
+      (browse-kill-ring-update))))
 
 (defun browse-kill-ring-format-doc-string (doc-string)
   "Reformat DOC-STRING for use as a documentation string.
@@ -451,11 +441,15 @@ and 'delete will create the functions
        (defun ,insert-function-symbol (&optional quit)
          ,insert-function-doc
          (interactive "P")
-         (let ((buf (current-buffer))
-               (pt (point)))
-           (,insert-sym buf pt quit)
-           ,@(when post-action
-               (browse-kill-ring-post-action-progn post-action))))
+         (,(if post-action 'let* 'let)
+          ((buf (current-buffer))
+           (pt (point))
+           ,@(if post-action
+                 '((target (browse-kill-ring-current-string buf pt)))
+               '()))
+          (,insert-sym buf pt quit)
+          ,@(when post-action
+              (browse-kill-ring-post-action-progn post-action))))
        (defun ,insert-and-quit-function-symbol ()
          ,insert-and-quit-function-doc
          (interactive)
@@ -584,6 +578,10 @@ Temporarily restore `browse-kill-ring-original-window' and
        (goto-char (point-max))
        (browse-kill-ring-insert-and-highlight str)))))
 
+(defun browse-kill-ring-do-delete (target)
+  "Delete TARGET from `kill-ring'."
+  (setq kill-ring (delete target kill-ring)))
+
 (defun browse-kill-ring-delete ()
   "Remove the item at point from the `kill-ring'."
   (interactive)
@@ -593,7 +591,7 @@ Temporarily restore `browse-kill-ring-original-window' and
            (target (overlay-get over 'browse-kill-ring-target))
            (inhibit-read-only t))
       (delete-region (overlay-start over) (1+ (overlay-end over)))
-      (setq kill-ring (delete target kill-ring))
+      (browse-kill-ring-do-delete target)
       (cond
        ;; Don't try to delete anything else in an empty buffer.
        ((and (bobp) (eobp)) t)
