@@ -285,17 +285,11 @@ call `browse-kill-ring' again.")
   ;; Return a list that is the progn to be included in the generated
   ;; insert function.  POST-ACTION should be either `move' or
   ;; `delete'.
-  (case post-action
-    ('move
-     (list
-      '(let ((str (browse-kill-ring-current-string buf pt)))
-         (browse-kill-ring-delete)
-         (kill-new str))
-      '(unless quit
-         (browse-kill-ring-update))))
-    ('delete
-     (list '(browse-kill-ring-delete)))
-    (t (error "Unknown post-action: %s" post-action))))
+  `((browse-kill-ring-do-delete target)
+    ,(when (equal post-action 'move)
+       '(kill-new target))
+    (unless quit
+      (browse-kill-ring-update))))
 
 (defun browse-kill-ring-make-doc-string (insert-action post-action)
   ;; Generate a documentation string for an macro-generated insert
@@ -362,11 +356,15 @@ call `browse-kill-ring' again.")
        (defun ,sym-1 (&optional quit)
          ,doc-1
          (interactive "P")
-         (let ((buf (current-buffer))
-               (pt (point)))
-           (,insert-sym buf pt quit)
-           ,@(when post-action
-               (browse-kill-ring-post-action-progn post-action))))
+         (,(if post-action 'let* 'let)
+          ((buf (current-buffer))
+           (pt (point))
+           ,@(if post-action
+                 '((target (browse-kill-ring-current-string buf pt)))
+               '()))
+          (,insert-sym buf pt quit)
+          ,@(when post-action
+              (browse-kill-ring-post-action-progn post-action))))
        (defun ,sym-2 ()
          ,doc-2
          (interactive)
@@ -476,6 +474,10 @@ Temporarily restore `browse-kill-ring-original-window' and
        (goto-char (point-max))
        (browse-kill-ring-insert-and-highlight str)))))
 
+(defun browse-kill-ring-do-delete (target)
+  "Delete TARGET from `kill-ring'."
+  (setq kill-ring (delete target kill-ring)))
+
 (defun browse-kill-ring-delete ()
   "Remove the item at point from the `kill-ring'."
   (interactive)
@@ -485,7 +487,7 @@ Temporarily restore `browse-kill-ring-original-window' and
            (target (overlay-get over 'browse-kill-ring-target))
            (inhibit-read-only t))
       (delete-region (overlay-start over) (1+ (overlay-end over)))
-      (setq kill-ring (delete target kill-ring))
+      (browse-kill-ring-do-delete target)
       (cond
        ;; Don't try to delete anything else in an empty buffer.
        ((and (bobp) (eobp)) t)
