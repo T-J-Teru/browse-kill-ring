@@ -1,4 +1,10 @@
 2015-04-27 Andrew Burgess <andrew.burgess@embecosm.com>
+	Add `browse-kill-ring-toggle-display-style' for toggling the
+	display style.  When entering `browse-kill-ring' mode, the display
+	style will default to the value in
+	`browse-kill-ring-display-style'.
+
+2015-04-27 Andrew Burgess <andrew.burgess@embecosm.com>
 	Restructure code, splitting up the setup routine into a setup and
 	a refresh functions.  There should be no user visible effects from
 	this restructuring.
