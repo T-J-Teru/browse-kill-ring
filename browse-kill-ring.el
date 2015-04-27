@@ -299,10 +299,13 @@ well."
 If optional argument QUIT is non-nil, close the *Kill Ring* buffer as
 well."
   (interactive "P")
-  (browse-kill-ring-do-insert (current-buffer)
-                              (point)
-                              quit)
-  (browse-kill-ring-delete))
+  (let* ((buf (current-buffer))
+         (pt (point))
+         (target (browse-kill-ring-current-string buf pt t)))
+    (browse-kill-ring-do-insert buf pt quit)
+    (browse-kill-ring-do-delete target)
+    (unless quit
+      (browse-kill-ring-update))))
 
 (defun browse-kill-ring-insert-delete-and-quit ()
   "Insert the kill ring item at point, remove it from the kill
@@ -457,6 +460,11 @@ of the *Kill Ring*."
        (goto-char (point-max))
        (browse-kill-ring-insert-and-highlight str)))))
 
+(defun browse-kill-ring-do-delete (target)
+  "Delete TARGET from `browse-kill-ring-source'."
+  (set browse-kill-ring-source
+       (delete target (symbol-value browse-kill-ring-source))))
+
 (defun browse-kill-ring-delete ()
   "Remove the item at point from the `kill-ring'."
   (interactive)
@@ -466,8 +474,7 @@ of the *Kill Ring*."
            (target (overlay-get over 'browse-kill-ring-target))
            (inhibit-read-only t))
       (delete-region (overlay-start over) (1+ (overlay-end over)))
-      (set browse-kill-ring-source
-           (delete target (symbol-value browse-kill-ring-source)))
+      (browse-kill-ring-do-delete target)
       (cond
        ;; Don't try to delete anything else in an empty buffer.
        ((and (bobp) (eobp)) t)
