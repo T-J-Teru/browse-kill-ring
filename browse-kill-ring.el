@@ -321,14 +321,14 @@ ring, then quit."
 (defun browse-kill-ring-insert-and-move (&optional quit)
   "Like `browse-kill-ring-insert', but move the entry to the front."
   (interactive "P")
-  (let ((buf (current-buffer))
-        (pt (point)))
+  (let* ((buf (current-buffer))
+         (pt (point))
+         (target (browse-kill-ring-current-string buf pt)))
     (browse-kill-ring-do-insert buf pt quit)
-    (let ((str (browse-kill-ring-current-string buf pt)))
-      (browse-kill-ring-delete)
-      (kill-new str)))
-  (unless quit
-    (browse-kill-ring-update)))
+    (browse-kill-ring-do-delete target)
+    (kill-new target)
+    (unless quit
+      (browse-kill-ring-update))))
 
 (defun browse-kill-ring-insert-move-and-quit ()
   "Like `browse-kill-ring-insert-and-move', but close the *Kill Ring* buffer."
@@ -352,14 +352,14 @@ of the buffer as opposed to point.  Point is left unchanged after inserting."
   "Like `browse-kill-ring-prepend-insert', but move the entry to the front
 of the *Kill Ring*."
   (interactive "P")
-  (let ((buf (current-buffer))
-        (pt (point)))
+  (let* ((buf (current-buffer))
+         (pt (point))
+         (target (browse-kill-ring-current-string buf pt)))
     (browse-kill-ring-do-prepend-insert buf pt quit)
-    (let ((str (browse-kill-ring-current-string buf pt)))
-      (browse-kill-ring-delete)
-      (kill-new str)))
-  (unless quit
-    (browse-kill-ring-update)))
+    (browse-kill-ring-do-delete target)
+    (kill-new target)
+    (unless quit
+      (browse-kill-ring-update))))
 
 (defun browse-kill-ring-prepend-insert-move-and-quit ()
   "Like `browse-kill-ring-prepend-insert-and-move', but close the
@@ -438,13 +438,13 @@ buffer as opposed to point.  Point is left unchanged after inserting."
 of the *Kill Ring*."
   (interactive "P")
   (let ((buf (current-buffer))
-        (pt (point)))
+        (pt (point))
+        (target (browse-kill-ring-current-string buf pt)))
     (browse-kill-ring-do-append-insert buf pt quit)
-    (let ((str (browse-kill-ring-current-string buf pt)))
-      (browse-kill-ring-delete)
-      (kill-new str)))
-  (unless quit
-    (browse-kill-ring-update)))
+    (browse-kill-ring-do-delete target)
+    (kill-new target)
+    (unless quit
+      (browse-kill-ring-update))))
 
 (defun browse-kill-ring-append-insert-move-and-quit ()
   "Like `browse-kill-ring-append-insert-and-move', but close the
