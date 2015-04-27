@@ -1,3 +1,8 @@
+2015-04-27 Andrew Burgess <andrew.burgess@embecosm.com>
+	Remove `browse-kill-ring-no-duplicates'.  This functionality was
+	never related to browsing the kill-ring, and would be better moved
+	in to a different package.
+
 2014-11-04 Toon Claes <toon@tonotdo.com>
 	v2.0 release:
 	Legacy code is removed, README is converted and
