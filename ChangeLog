@@ -1,4 +1,10 @@
 2015-05-19 Andrew Burgess <andrew.burgess@embecosm.com>
+	Add `browse-kill-ring-toggle-display-style' for toggling the
+	display style.  When entering `browse-kill-ring' mode, the display
+	style will default to the value in
+	`browse-kill-ring-display-style'.
+
+2015-05-19 Andrew Burgess <andrew.burgess@embecosm.com>
 	The browse-kill-ring package can bow be used to browse rings
 	beyond just `kill-ring'.  The browse-kill-ring function can
 	optionally be passed the symbol name of a ring to browse.  This

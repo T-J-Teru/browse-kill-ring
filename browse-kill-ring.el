@@ -72,6 +72,12 @@ entries."
                  (const :tag "Separated" separated))
   :group 'browse-kill-ring)
 
+(defvar browse-kill-ring-display-style-in-buffer nil
+  "The display style in the current buffer.
+
+The display style in the current buffer, the initial value is set
+from `browse-kill-ring-display-style`")
+(make-variable-buffer-local 'browse-kill-ring-display-style-in-buffer)
 (defcustom browse-kill-ring-quit-action 'save-and-restore
   "What action to take when `browse-kill-ring-quit' is called.
 
@@ -690,6 +696,7 @@ You most likely do not want to call `browse-kill-ring-mode' directly; use
   (define-key browse-kill-ring-mode-map (kbd "s") 'browse-kill-ring-search-forward)
   (define-key browse-kill-ring-mode-map (kbd "r") 'browse-kill-ring-search-backward)
   (define-key browse-kill-ring-mode-map (kbd "g") 'browse-kill-ring-update)
+  (define-key browse-kill-ring-mode-map (kbd "t") 'browse-kill-ring-toggle-display-style)
   (define-key browse-kill-ring-mode-map (kbd "l") 'browse-kill-ring-occur)
   (define-key browse-kill-ring-mode-map (kbd "e") 'browse-kill-ring-edit)
   (define-key browse-kill-ring-mode-map (kbd "n") 'browse-kill-ring-forward)
@@ -1108,10 +1115,10 @@ ring is written into it."
                       "\\[describe-mode] for help.")))))
     ;; End code from Michael Slass <mikesl@wrq.com>
     (erase-buffer)
-    (funcall (or (cdr (assq browse-kill-ring-display-style
+    (funcall (or (cdr (assq browse-kill-ring-display-style-in-buffer
                             browse-kill-ring-display-styles))
-                 (error "Invalid `browse-kill-ring-display-style': %s"
-                        browse-kill-ring-display-style))
+                 (error "Invalid `browse-kill-ring-display-style-in-buffer': %s"
+                        browse-kill-ring-display-style-in-buffer))
              items)
     (set-buffer-modified-p nil)
     (goto-char (point-min))
@@ -1128,8 +1135,10 @@ ring is written into it."
     (unwind-protect
         (progn
           (browse-kill-ring-mode)
+          (setq browse-kill-ring-display-style-in-buffer
+                browse-kill-ring-display-style)
           (setq buffer-read-only nil)
-          (when (eq browse-kill-ring-display-style
+          (when (eq browse-kill-ring-display-style-in-buffer
                     'one-line)
             (setq truncate-lines t))
           (setq browse-kill-ring-original-buffer orig-buf
@@ -1225,6 +1234,18 @@ If RING-VAR is nil, or not supplied, then it defaults to
           (browse-kill-ring-find-entry
            (substring-no-properties
             (car (symbol-value yank-pointer-symbol))))))))
+
+;;;###autoload
+(defun browse-kill-ring-toggle-display-style ()
+  "Toggle the value of `browse-kill-ring-display-style-in-buffer'."
+  (interactive)
+  (setq browse-kill-ring-display-style-in-buffer
+        (case browse-kill-ring-display-style-in-buffer
+          (separated 'one-line)
+          (otherwise 'separated)))
+  (browse-kill-ring-update)
+  (message "Display style is now %s"
+           (upcase (symbol-name browse-kill-ring-display-style-in-buffer))))
 
 (provide 'browse-kill-ring)
 
