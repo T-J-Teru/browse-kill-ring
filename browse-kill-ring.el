@@ -298,6 +298,12 @@ well."
                               quit)
   (browse-kill-ring-delete))
 
+(defun browse-kill-ring-insert-delete-and-quit ()
+  "Insert the kill ring item at point, remove it from the kill
+ring, then quit."
+  (interactive)
+  (browse-kill-ring-insert-and-delete t))
+
 (defun browse-kill-ring-insert-and-quit ()
   "Like `browse-kill-ring-insert', but close the *Kill Ring* buffer afterwards."
   (interactive)
@@ -667,6 +673,7 @@ You most likely do not want to call `browse-kill-ring-mode' directly; use
   (define-key browse-kill-ring-mode-map (kbd "i") 'browse-kill-ring-insert)
   (define-key browse-kill-ring-mode-map (kbd "o") 'browse-kill-ring-insert-and-move)
   (define-key browse-kill-ring-mode-map (kbd "x") 'browse-kill-ring-insert-and-delete)
+  (define-key browse-kill-ring-mode-map (kbd "X") 'browse-kill-ring-insert-delete-and-quit)
   (define-key browse-kill-ring-mode-map (kbd "RET") 'browse-kill-ring-insert-and-quit)
   (define-key browse-kill-ring-mode-map (kbd "b") 'browse-kill-ring-prepend-insert)
   (define-key browse-kill-ring-mode-map (kbd "a") 'browse-kill-ring-append-insert))
