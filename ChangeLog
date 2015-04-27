@@ -1,3 +1,8 @@
+2015-04-27 Andrew Burgess <andrew.burgess@embecosm.com>
+	Remove `browse-kill-ring-no-duplicates'.  This functionality was
+	never related to browsing the kill-ring, and would be better moved
+	in to a different package.
+
 2015-01-02 Andrew Burgess <andrew.burgess@embecosm.com>
 	Unify tail of `browse-kill-ring-finish' and
 	`browse-kill-ring-abort' to increase code reuse.  Improve use of
