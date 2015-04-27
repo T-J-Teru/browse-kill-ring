@@ -587,11 +587,11 @@ case retun nil."
   (interactive "p")
   (browse-kill-ring-forward (- arg)))
 
-(defun browse-kill-ring-read-regexp (msg)
+(defun browse-kill-ring-read-regexp (msg &optional empty-is-nil-p)
   (let* ((default (car regexp-history))
          (input
           (read-from-minibuffer
-           (if default
+           (if (and default (not empty-is-nil-p))
                (format "%s for regexp (default `%s'): "
                        msg
                        default)
@@ -599,9 +599,10 @@ case retun nil."
            nil
            nil
            nil
-           'regexp-history)))
+           'regexp-history
+           (if empty-is-nil-p default nil))))
     (if (equal input "")
-        default
+        (if empty-is-nil-p nil default)
       input)))
 
 (defun browse-kill-ring-search-forward (regexp &optional backwards)
@@ -872,8 +873,8 @@ reselects ENTRY in the `*Kill Ring*' buffer."
 (defun browse-kill-ring-occur (regexp)
   "Display all `kill-ring' entries matching REGEXP."
   (interactive
-   (list
-    (browse-kill-ring-read-regexp "Display kill ring entries matching")))
+   (list (browse-kill-ring-read-regexp
+          "Display kill ring entries matching" t)))
   (assert (eq major-mode 'browse-kill-ring-mode))
   (browse-kill-ring-update regexp))
 
