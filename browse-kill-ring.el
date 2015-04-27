@@ -1058,8 +1058,9 @@ it's turned on."
       (add-hook 'post-command-hook
                 'browse-kill-ring-update-highlighed-entry
                 nil t))
-    (when regexp
-      (setq mode-name (concat "Kill Ring [" regexp "]")))
+    (setq mode-name (if regexp
+                        (concat "Kill Ring [" regexp "]")
+                      (concat "Kill Ring")))
     (setq header-line-format
           (let ((entry
                  (if (= 1 (length (symbol-value browse-kill-ring-source)))
