@@ -669,6 +669,7 @@ You most likely do not want to call `browse-kill-ring-mode' directly; use
   (set (make-local-variable 'font-lock-defaults)
        '(nil t nil nil nil
              (font-lock-fontify-region-function . browse-kill-ring-fontify-region)))
+  (define-key browse-kill-ring-mode-map (kbd "<tab>") 'browse-kill-ring-quick-select)
   (define-key browse-kill-ring-mode-map (kbd "q") 'browse-kill-ring-quit)
   (define-key browse-kill-ring-mode-map (kbd "U") 'browse-kill-ring-undo-other-window)
   (define-key browse-kill-ring-mode-map (kbd "d") 'browse-kill-ring-delete)
@@ -1174,6 +1175,112 @@ If `RING-VAR' is not supplied, then it defaults to `kill-ring'."
   (browse-kill-ring-update)
   (message "Display style is now %s"
            (upcase (symbol-name browse-kill-ring-display-style-in-buffer))))
+
+
+;; The following code all relates to quick select mode feature.
+;; Maybe this should move out into a new file?
+
+(defvar browse-kill-ring-quick-select-keymap (make-sparse-keymap)
+  "Keymap for `browse-kill-ring-quick-select' minor-mode")
+(define-key browse-kill-ring-quick-select-keymap (kbd "<tab>")
+  'browse-kill-ring-quick-select)
+(define-key browse-kill-ring-quick-select-keymap [t]
+  'browse-kill-ring-quick-select-insert)
+
+(defvar browse-kill-ring-quick-select-state (make-vector 3 nil)
+  "Variable in which to backup buffer state before quick select
+mode was enabled.  This variable is a vector.
+
+Element 0 is the previous value of `cursor-style'.
+Element 1 is the previous value of `browse-kill-ring-highlight-current-entry'.")
+(make-variable-buffer-local 'browse-kill-ring-quick-select-state)
+
+(defun browse-kill-ring-quick-select-insert (&optional event)
+  (interactive)
+  (let ((event (char-to-string (or event last-command-event)))
+        (done-p nil))
+    ;; Is there an entry matching this event?
+    (save-excursion
+      (goto-char (point-min))
+      (browse-kill-ring-forward 0)
+      (while (and (not done-p)
+                  (browse-kill-ring-target-overlay-at (point) t))
+        (let* ((over (browse-kill-ring-target-overlay-at (point)))
+               (str (overlay-get over 'browse-kill-ring-str)))
+          (if (string-equal str event)
+              (progn
+                (browse-kill-ring-insert-and-quit)
+                (setq done-p t)
+                (browse-kill-ring-quick-select -1))))
+        (browse-kill-ring-forward 1))
+      (unless done-p
+        (error "No matching entry for `%s'" event)))))
+
+(defun browse-kill-ring-quick-select-on ()
+  (save-excursion
+    ;; From the start of the buffer, find every item.
+    (goto-char (point-min))
+    (browse-kill-ring-forward 0)
+    (aset browse-kill-ring-quick-select-state 0 cursor-type)
+    (setq cursor-type nil)
+    (browse-kill-ring-clear-highlighed-entry)
+    (aset browse-kill-ring-quick-select-state 1
+          browse-kill-ring-highlight-current-entry)
+    (setq browse-kill-ring-highlight-current-entry nil)
+    (let ((ch ?a))
+      (while (browse-kill-ring-target-overlay-at (point) t)
+        (let* ((over (browse-kill-ring-target-overlay-at (point)))
+               (beg (overlay-start over))
+               (end (overlay-end over))
+               ;; Create overlay to fade the item out.
+               (fo (make-overlay beg end))
+               ;; Create overlay to display the selection key.
+               (co (make-overlay beg (+ beg 1)))
+               (str (char-to-string ch)))
+          (overlay-put fo 'face "shadow")
+          (overlay-put co 'display str)
+          (overlay-put co 'face "font-lock-warning-face")
+          (overlay-put over 'browse-kill-ring-fo fo)
+          (overlay-put over 'browse-kill-ring-co co)
+          (overlay-put over 'browse-kill-ring-str str)
+          (setq ch (+ ch 1)))
+        (browse-kill-ring-forward 1)))))
+
+(defun browse-kill-ring-quick-select-off ()
+  (save-excursion
+    (goto-char (point-min))
+    (browse-kill-ring-forward 0)
+    (while (browse-kill-ring-target-overlay-at (point) t)
+      (let* ((over (browse-kill-ring-target-overlay-at (point)))
+             (fo (overlay-get over 'browse-kill-ring-fo))
+             (co (overlay-get over 'browse-kill-ring-co)))
+        (delete-overlay fo)
+        (delete-overlay co)
+        (overlay-put over 'browse-kill-ring-fo nil)
+        (overlay-put over 'browse-kill-ring-co nil)
+        (overlay-put over 'browse-kill-ring-str nil))
+      (browse-kill-ring-forward 1))
+    (goto-char (point-min))
+    (browse-kill-ring-forward 0)
+    (setq cursor-type
+          (aref browse-kill-ring-quick-select-state 0))
+    (setq browse-kill-ring-highlight-current-entry
+          (aref browse-kill-ring-quick-select-state 1))
+    (browse-kill-ring-update-highlighed-entry)))
+
+(define-minor-mode browse-kill-ring-quick-select
+  "Minor mode for `browse-kill-ring' quick-select"
+  :init-value nil
+  :lighter nil
+  :keymap browse-kill-ring-quick-select-keymap
+  :group 'browse-kill-ring
+  (if browse-kill-ring-quick-select
+      (progn
+        (unless (eq major-mode 'browse-kill-ring-mode)
+          (browse-kill-ring-quick-select -1)
+          (error "Not in browse-kill-ring mode"))
+        (browse-kill-ring-quick-select-on))
+    (browse-kill-ring-quick-select-off)))
 
 (provide 'browse-kill-ring)
 
