@@ -1146,18 +1146,19 @@ start of the buffer."
   "Display items in the `kill-ring' in another buffer."
   (interactive)
   (if (eq major-mode 'browse-kill-ring-mode)
-      (message "Already viewing the kill ring")
-    (let* ((orig-win (selected-window))
-           (orig-buf (window-buffer orig-win))
-           (buf (get-buffer-create "*Kill Ring*"))
-           (kill-ring-yank-pointer-string
-            (if kill-ring-yank-pointer
-                (substring-no-properties (car kill-ring-yank-pointer)))))
-      (browse-kill-ring-setup buf orig-buf orig-win)
-      (pop-to-buffer buf)
-      (browse-kill-ring-resize-window)
-      (unless (eq kill-ring kill-ring-yank-pointer)
-        (browse-kill-ring-find-entry kill-ring-yank-pointer-string)))))
+      (error "Already viewing the kill ring"))
+
+  (let* ((orig-win (selected-window))
+         (orig-buf (window-buffer orig-win))
+         (buf (get-buffer-create "*Kill Ring*"))
+         (kill-ring-yank-pointer-string
+          (if kill-ring-yank-pointer
+              (substring-no-properties (car kill-ring-yank-pointer)))))
+    (browse-kill-ring-setup buf orig-buf orig-win)
+    (pop-to-buffer buf)
+    (browse-kill-ring-resize-window)
+    (unless (eq kill-ring kill-ring-yank-pointer)
+      (browse-kill-ring-find-entry kill-ring-yank-pointer-string))))
 
 (provide 'browse-kill-ring)
 
