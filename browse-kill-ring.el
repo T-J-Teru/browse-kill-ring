@@ -219,6 +219,28 @@ can disable it by setting this to nil."
   :type 'boolean
   :group 'browse-kill-ring)
 
+(defcustom browse-kill-ring-quick-select-action
+  'browse-kill-ring-insert-and-quit
+  "Action to perform when `browse-kil-ring-quick-select-mode' is used."
+  :type 'symbol
+  :group 'browse-kill-ring)
+
+(defcustom browse-kill-ring-quick-select-quit-on-invalid
+  t
+  "Should an invalid key cause `browse-kill-ring-quick-select-mode' to quit."
+  :type 'boolean
+  :group 'browse-kill-ring)
+
+(defcustom browse-kill-ring-quick-select-shadow-face 'shadow
+  "Face used to shadow item text in `browse-kill-ring-quick-select-mode'."
+  :type 'face
+  :group 'browse-kill-ring)
+
+(defcustom browse-kill-ring-quick-select-shortcut-face 'error
+  "Face used for shortcut text in `browse-kill-ring-quick-select-mode'."
+  :type 'face
+  :group 'browse-kill-ring)
+
 (defvar browse-kill-ring-original-window-config nil
   "The window configuration to restore for `browse-kill-ring-quit'.")
 (make-variable-buffer-local 'browse-kill-ring-original-window-config)
@@ -1180,12 +1202,14 @@ If `RING-VAR' is not supplied, then it defaults to `kill-ring'."
 ;; The following code all relates to quick select mode feature.
 ;; Maybe this should move out into a new file?
 
-(defvar browse-kill-ring-quick-select-keymap (make-sparse-keymap)
+(defvar browse-kill-ring-quick-select-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "<tab>") 'browse-kill-ring-quick-select)
+    (define-key map [t] 'browse-kill-ring-quick-select-default)
+    (define-key map (kbd "C-g")
+      (lambda () (interactive) (browse-kill-ring-quick-select -1)))
+    map)
   "Keymap for `browse-kill-ring-quick-select' minor-mode")
-(define-key browse-kill-ring-quick-select-keymap (kbd "<tab>")
-  'browse-kill-ring-quick-select)
-(define-key browse-kill-ring-quick-select-keymap [t]
-  'browse-kill-ring-quick-select-insert)
 
 (defvar browse-kill-ring-quick-select-state (make-vector 3 nil)
   "Variable in which to backup buffer state before quick select
@@ -1195,7 +1219,7 @@ Element 0 is the previous value of `cursor-style'.
 Element 1 is the previous value of `browse-kill-ring-highlight-current-entry'.")
 (make-variable-buffer-local 'browse-kill-ring-quick-select-state)
 
-(defun browse-kill-ring-quick-select-insert (&optional event)
+(defun browse-kill-ring-quick-select-default (&optional event)
   (interactive)
   (let ((event (char-to-string (or event last-command-event)))
         (done-p nil))
@@ -1209,12 +1233,25 @@ Element 1 is the previous value of `browse-kill-ring-highlight-current-entry'.")
                (str (overlay-get over 'browse-kill-ring-str)))
           (if (string-equal str event)
               (progn
-                (browse-kill-ring-insert-and-quit)
+                (funcall browse-kill-ring-quick-select-action)
                 (setq done-p t)
                 (browse-kill-ring-quick-select -1))))
         (browse-kill-ring-forward 1))
       (unless done-p
-        (error "No matching entry for `%s'" event)))))
+        (if browse-kill-ring-quick-select-quit-on-invalid
+            (browse-kill-ring-quick-select -1)
+          (error "No matching entry for `%s'" event))))))
+
+(defun browse-kill-ring-quick-select-accessor (index)
+  "Return a string that is the key sequence to access INDEX.
+
+The string returned is passed through `kbd' and inserted in to
+`browse-kill-ring-quick-select-keymap', and will be the accessor
+combination for entry INDEX in the `kill-ring'."
+  (let ((ch (+ ?a index)))
+    (if (> ch ?z)
+        nil
+      (char-to-string ch))))
 
 (defun browse-kill-ring-quick-select-on ()
   (save-excursion
@@ -1227,7 +1264,7 @@ Element 1 is the previous value of `browse-kill-ring-highlight-current-entry'.")
     (aset browse-kill-ring-quick-select-state 1
           browse-kill-ring-highlight-current-entry)
     (setq browse-kill-ring-highlight-current-entry nil)
-    (let ((ch ?a))
+    (let ((index 0))
       (while (browse-kill-ring-target-overlay-at (point) t)
         (let* ((over (browse-kill-ring-target-overlay-at (point)))
                (beg (overlay-start over))
@@ -1236,14 +1273,15 @@ Element 1 is the previous value of `browse-kill-ring-highlight-current-entry'.")
                (fo (make-overlay beg end))
                ;; Create overlay to display the selection key.
                (co (make-overlay beg (+ beg 1)))
-               (str (char-to-string ch)))
-          (overlay-put fo 'face "shadow")
-          (overlay-put co 'display str)
-          (overlay-put co 'face "font-lock-warning-face")
+               (str (browse-kill-ring-quick-select-accessor index)))
+          (overlay-put fo 'face browse-kill-ring-quick-select-shadow-face)
+          (when str
+              (overlay-put co 'display str)
+              (overlay-put co 'face browse-kill-ring-quick-select-shortcut-face))
           (overlay-put over 'browse-kill-ring-fo fo)
           (overlay-put over 'browse-kill-ring-co co)
           (overlay-put over 'browse-kill-ring-str str)
-          (setq ch (+ ch 1)))
+          (setq index (+ index 1)))
         (browse-kill-ring-forward 1)))))
 
 (defun browse-kill-ring-quick-select-off ()
