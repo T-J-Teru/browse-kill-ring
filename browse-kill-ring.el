@@ -783,12 +783,7 @@ reselects ENTRY in the `*Kill Ring*' buffer."
     (kill-buffer))
   ;; The user might have rearranged the windows
   (when (eq major-mode 'browse-kill-ring-mode)
-    (browse-kill-ring-setup (current-buffer)
-                            browse-kill-ring-original-buffer
-                            browse-kill-ring-original-window
-                            nil
-                            browse-kill-ring-original-window-config)
-    (browse-kill-ring-resize-window)
+    (browse-kill-ring-update)
     (when entry
       (browse-kill-ring-find-entry entry))))
 
@@ -896,11 +891,7 @@ reselects ENTRY in the `*Kill Ring*' buffer."
    (list
     (browse-kill-ring-read-regexp "Display kill ring entries matching")))
   (assert (eq major-mode 'browse-kill-ring-mode))
-  (browse-kill-ring-setup (current-buffer)
-                          browse-kill-ring-original-buffer
-                          browse-kill-ring-original-window
-                          regexp)
-  (browse-kill-ring-resize-window))
+  (browse-kill-ring-update regexp))
 
 (defun browse-kill-ring-fontify-on-property (prop face beg end)
   (save-excursion
@@ -924,15 +915,6 @@ reselects ENTRY in the `*Kill Ring*' buffer."
     (browse-kill-ring-fontify-on-property 'browse-kill-ring-separator
                                           browse-kill-ring-separator-face beg end))
   (when verbose (message "Fontifying...done")))
-
-(defun browse-kill-ring-update ()
-  "Update the buffer to reflect outside changes to `kill-ring'."
-  (interactive)
-  (assert (eq major-mode 'browse-kill-ring-mode))
-  (browse-kill-ring-setup (current-buffer)
-                          browse-kill-ring-original-buffer
-                          browse-kill-ring-original-window)
-  (browse-kill-ring-resize-window))
 
 (defun browse-kill-ring-preview-update-text (preview-text)
   "Update `browse-kill-ring-preview-overlay' to show `PREVIEW-TEXT`."
@@ -1069,7 +1051,74 @@ it's turned on."
         (overlay-put browse-kill-ring-preview-overlay
                      'invisible t)))))
 
-(defun browse-kill-ring-setup (kill-buf orig-buf window &optional regexp window-config)
+(defun browse-kill-ring-update (&optional regexp)
+  "Update the buffer to reflect outside changes to `kill-ring'.
+
+The current buffer, which must be in `browse-kill-ring-mode' is
+cleared and the latest state of the `browse-kill-ring-source'
+ring is written into it."
+  (interactive)
+  (assert (eq major-mode 'browse-kill-ring-mode))
+  (let ((inhibit-read-only t)
+        (browse-kill-ring-maximum-display-length
+         (if (and browse-kill-ring-maximum-display-length
+                  (<= browse-kill-ring-maximum-display-length 3))
+             4
+           browse-kill-ring-maximum-display-length))
+        (items (mapcar
+                (if browse-kill-ring-depropertize
+                    #'substring-no-properties
+                  #'copy-sequence)
+                (symbol-value browse-kill-ring-source))))
+    (when (not browse-kill-ring-display-duplicates)
+      ;; display leftmost or rightmost duplicate.
+      ;; if `browse-kill-ring-display-leftmost-duplicate' is t,
+      ;; display leftmost(last) duplicate.
+      (require 'cl)
+      (delete-duplicates items
+                         :test #'equal
+                         :from-end browse-kill-ring-display-leftmost-duplicate))
+    (when (stringp regexp)
+      (setq items (delq nil
+                        (mapcar
+                         #'(lambda (item)
+                             (when (string-match regexp item)
+                               item))
+                         items))))
+    (when regexp
+      (setq mode-name (concat "Kill Ring [" regexp "]")))
+    ;; Code from Michael Slass <mikesl@wrq.com>
+    (message
+          (let ((entry
+                 (if (= 1 (length (symbol-value browse-kill-ring-source)))
+                     "entry" "entries")))
+            (concat
+             (if (and (not regexp)
+                      browse-kill-ring-display-duplicates)
+                 (format "%s %s in the kill ring."
+                         (length
+                          (symbol-value browse-kill-ring-source))
+                         entry)
+               (format "%s (of %s) %s in the kill ring shown."
+                       (length items)
+                       (length (symbol-value browse-kill-ring-source))
+                       entry))
+             (substitute-command-keys
+              (concat "    Type \\[browse-kill-ring-quit] to quit.  "
+                      "\\[describe-mode] for help.")))))
+    ;; End code from Michael Slass <mikesl@wrq.com>
+    (erase-buffer)
+    (funcall (or (cdr (assq browse-kill-ring-display-style
+                            browse-kill-ring-display-styles))
+                 (error "Invalid `browse-kill-ring-display-style': %s"
+                        browse-kill-ring-display-style))
+             items)
+    (set-buffer-modified-p nil)
+    (goto-char (point-min))
+    (browse-kill-ring-forward 0)
+    (browse-kill-ring-resize-window)))
+
+(defun browse-kill-ring-setup (kill-buf orig-buf window)
   (setq browse-kill-ring-this-buffer-replace-yanked-text
         (and
          browse-kill-ring-replace-yank
@@ -1083,87 +1132,24 @@ it's turned on."
           (when (eq browse-kill-ring-display-style
                     'one-line)
             (setq truncate-lines t))
-          (let ((inhibit-read-only t))
-            (erase-buffer))
           (setq browse-kill-ring-original-buffer orig-buf
                 browse-kill-ring-original-window window
                 browse-kill-ring-original-window-config
-                (or window-config
-                    (current-window-configuration)))
-          (let ((browse-kill-ring-maximum-display-length
-                 (if (and browse-kill-ring-maximum-display-length
-                          (<= browse-kill-ring-maximum-display-length 3))
-                     4
-                   browse-kill-ring-maximum-display-length))
-                (items (mapcar
-                        (if browse-kill-ring-depropertize
-                            #'substring-no-properties
-                          #'copy-sequence)
-                        (symbol-value browse-kill-ring-source))))
-            (when (not browse-kill-ring-display-duplicates)
-              ;; display leftmost or rightmost duplicate.
-              ;; if `browse-kill-ring-display-leftmost-duplicate' is t,
-              ;; display leftmost(last) duplicate.
-              (require 'cl)
-              (delete-duplicates items
-                                 :test #'equal
-                                 :from-end browse-kill-ring-display-leftmost-duplicate))
-            (when (stringp regexp)
-              (setq items (delq nil
-                                (mapcar
-                                 #'(lambda (item)
-                                     (when (string-match regexp item)
-                                       item))
-                                 items))))
-            (funcall (or (cdr (assq browse-kill-ring-display-style
-                                    browse-kill-ring-display-styles))
-                         (error "Invalid `browse-kill-ring-display-style': %s"
-                                browse-kill-ring-display-style))
-                     items)
-            (when browse-kill-ring-show-preview
-              (browse-kill-ring-preview-update-by-position (point-min))
-              ;; Local post-command-hook, only happens in the *Kill
-              ;; Ring* buffer
-              (add-hook 'post-command-hook
-                        'browse-kill-ring-preview-update-by-position
-                        nil t)
-              (add-hook 'kill-buffer-hook
-                        'browse-kill-ring-cleanup-on-exit
-                        nil t))
-            (when browse-kill-ring-highlight-current-entry
-              (add-hook 'post-command-hook
-                        'browse-kill-ring-update-highlighed-entry
-                        nil t))
-;; Code from Michael Slass <mikesl@wrq.com>
-            (message
-             (let ((entry
-                    (if (= 1 (length
-                              (symbol-value browse-kill-ring-source)))
-                        "entry" "entries")))
-               (concat
-                (let ((ring-length
-                       (length (symbol-value browse-kill-ring-source)))
-                      (ring-name
-                       (replace-regexp-in-string
-                        (regexp-quote "-")
-                        " "
-                        (symbol-name browse-kill-ring-source))))
-                  (if (and (not regexp)
-                           browse-kill-ring-display-duplicates)
-                      (format "%s %s in the %s."
-                              ring-length entry ring-name)
-                    (format "%s (of %s) %s in the %s shown."
-                            (length items) ring-length entry ring-name)))
-                (substitute-command-keys
-                 (concat "    Type \\[browse-kill-ring-quit] to quit.  "
-                         "\\[describe-mode] for help.")))))
-;; End code from Michael Slass <mikesl@wrq.com>
-            (set-buffer-modified-p nil)
-            (goto-char (point-min))
-            (browse-kill-ring-forward 0)
-            (when regexp
-              (setq mode-name (concat "Kill Ring [" regexp "]")))
-            (run-hooks 'browse-kill-ring-hook)))
+                (current-window-configuration))
+          (when browse-kill-ring-show-preview
+            ;; Local post-command-hook, only happens in the *Kill
+            ;; Ring* buffer
+            (add-hook 'post-command-hook
+                      'browse-kill-ring-preview-update-by-position
+                      nil t)
+            (add-hook 'kill-buffer-hook
+                      'browse-kill-ring-cleanup-on-exit
+                      nil t))
+          (when browse-kill-ring-highlight-current-entry
+            (add-hook 'post-command-hook
+                      'browse-kill-ring-update-highlighed-entry
+                      nil t))
+          (run-hooks 'browse-kill-ring-hook))
       (progn
         (setq buffer-read-only t)))))
 
@@ -1227,7 +1213,7 @@ If RING-VAR is nil, or not supplied, then it defaults to
     (setq buf (get-buffer-create (browse-kill-ring-buffer-name)))
     (browse-kill-ring-setup buf orig-buf orig-win)
     (pop-to-buffer buf)
-    (browse-kill-ring-resize-window)
+    (browse-kill-ring-update)
 
     ;; If there's a KILL-RING-yank-pointer symbol defined, then use
     ;; that to select the correct entry in the KILL-RING.
