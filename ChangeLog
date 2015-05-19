@@ -1,4 +1,8 @@
 2015-05-19 Andrew Burgess <andrew.burgess@embecosm.com>
+	When entering browse-kill-ring mode display the information line
+	in a buffer header rather than as a message.
+
+2015-05-19 Andrew Burgess <andrew.burgess@embecosm.com>
 	The browse-kill-ring package can bow be used to browse rings
 	beyond just `kill-ring'.  The browse-kill-ring function can
 	optionally be passed the symbol name of a ring to browse.  This

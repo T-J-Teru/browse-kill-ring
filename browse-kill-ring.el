@@ -1088,7 +1088,7 @@ ring is written into it."
     (when regexp
       (setq mode-name (concat "Kill Ring [" regexp "]")))
     ;; Code from Michael Slass <mikesl@wrq.com>
-    (message
+    (setq header-line-format
           (let ((entry
                  (if (= 1 (length (symbol-value browse-kill-ring-source)))
                      "entry" "entries")))
