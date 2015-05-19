@@ -475,8 +475,9 @@ Temporarily restore `browse-kill-ring-original-window' and
        (browse-kill-ring-insert-and-highlight str)))))
 
 (defun browse-kill-ring-do-delete (target)
-  "Delete TARGET from `kill-ring'."
-  (setq kill-ring (delete target kill-ring)))
+  "Delete TARGET from `browse-kill-ring-source'."
+  (set browse-kill-ring-source
+       (delete target (symbol-value browse-kill-ring-source))))
 
 (defun browse-kill-ring-delete ()
   "Remove the item at point from the `kill-ring'."
@@ -529,9 +530,11 @@ case retun nil."
         (error "No kill ring item here")))))
 
 (defun browse-kill-ring-do-insert (buf pt quit)
-  (let ((str (browse-kill-ring-current-string buf pt)))
-    (setq kill-ring-yank-pointer
-          (browse-kill-ring-current-kill-ring-yank-pointer buf pt))
+  (let ((str (browse-kill-ring-current-string buf pt))
+        (yp-sym (browse-kill-ring-yank-pointer-sym)))
+    (when yp-sym
+      (set yp-sym
+           (browse-kill-ring-current-yank-pointer buf pt)))
     (browse-kill-ring-prepare-to-insert
      quit
      (when browse-kill-ring-this-buffer-replace-yanked-text
@@ -746,10 +749,12 @@ directly; use `browse-kill-ring' instead.
   (interactive)
   (let* ((over (browse-kill-ring-target-overlay-at (point)))
          (target (overlay-get over 'browse-kill-ring-target))
-         (target-cell (member target kill-ring)))
+         (target-cell
+          (member target (symbol-value browse-kill-ring-source))))
     (unless target-cell
       (error "Item deleted from the kill-ring"))
-    (switch-to-buffer (get-buffer-create "*Kill Ring Edit*"))
+    (switch-to-buffer
+     (get-buffer-create (browse-kill-ring-buffer-name "edit")))
     (setq buffer-read-only nil)
     (erase-buffer)
     (insert target)
@@ -803,10 +808,12 @@ reselects ENTRY in the `*Kill Ring*' buffer."
         (progn
           (setq select-entry
                 (cadr current-entry))
-          (setq kill-ring
-                (delete (car current-entry) kill-ring))
+          (set browse-kill-ring-source
+               (delete (car current-entry)
+                       (symbol-value browse-kill-ring-source)))
           (unless select-entry
-            (setq select-entry (car (last kill-ring)))))
+            (setq select-entry
+                  (car (last (symbol-value browse-kill-ring-source))))))
       ;; Update the entry that was just edited, and arrange to select
       ;; it.
       (setcar current-entry updated-entry)
@@ -974,28 +981,60 @@ update the preview in the original buffer."
             (setq current-index (1+ current-index))))))
     current-index))
 
-(defun browse-kill-ring-current-kill-ring-yank-pointer (buf pt)
-  "Return current kill-ring-yank-pointer."
-  (let ((result-yank-pointer kill-ring)
+(defun browse-kill-ring-yank-pointer-sym ()
+  "Return the symbol that is the current yank-pointer.
+
+The symbol held in `browse-kill-ring-source' is the current ring
+being operated on.  If there is a symbol with the same name as
+the source but ending in -yank-pointer then this is the symbol
+returned by this function.
+
+By default `browse-kill-ring' operates on the `kill-ring'
+variable, in which case the symbol returned from this function
+wil be `kill-ring-yank-pointer'.
+
+If there is no suitable -yank-pointer symbol defined then this
+function returns nil."
+  (let ((yank-pointer-symbol
+         (intern (concat (symbol-name browse-kill-ring-source)
+                         "-yank-pointer"))))
+    (if (boundp yank-pointer-symbol)
+        yank-pointer-symbol
+      nil)))
+
+(defun browse-kill-ring-current-yank-pointer (buf pt)
+  "Return new value for the yank-pointer."
+  (let ((result-yank-pointer (symbol-value browse-kill-ring-source))
         (current-string (browse-kill-ring-current-string buf pt))
         (found nil)
         (i 0))
     (if browse-kill-ring-display-duplicates
-      (setq result-yank-pointer (nthcdr (browse-kill-ring-current-index buf pt) kill-ring))
+      (setq result-yank-pointer
+            (nthcdr (browse-kill-ring-current-index buf pt)
+                    (symbol-value browse-kill-ring-source)))
       (if browse-kill-ring-display-leftmost-duplicate
         ;; search leftmost duplicate
-        (while (< i (length kill-ring))
-          (if (and (not found) (equal (substring-no-properties current-string) (substring-no-properties (elt kill-ring i))))
+        (while (< i (length (symbol-value browse-kill-ring-source)))
+          (if (and (not found)
+                   (equal (substring-no-properties current-string)
+                          (substring-no-properties
+                           (elt (symbol-value browse-kill-ring-source) i))))
             (progn
-              (setq result-yank-pointer (nthcdr i kill-ring))
+              (setq result-yank-pointer
+                    (nthcdr i (symbol-value browse-kill-ring-source)))
               (setq found t)))
           (setq i (1+ i)))
         ;; search rightmost duplicate
-        (setq i (1- (length kill-ring)))
+        (setq i (1- (length (symbol-value browse-kill-ring-source))))
         (while (<= 0 i)
-          (if (and (not found) (equal (substring-no-properties current-string) (substring-no-properties (elt kill-ring i))))
+          (if (and (not found)
+                   (equal (substring-no-properties current-string)
+                          (substring-no-properties
+                           (elt (symbol-value browse-kill-ring-source) i))))
             (progn
-              (setq result-yank-pointer (nthcdr i kill-ring))
+              (setq result-yank-pointer
+                    (nthcdr i
+                            (symbol-value browse-kill-ring-source)))
               (setq found t)))
           (setq i (1- i)))))
     result-yank-pointer))
@@ -1060,7 +1099,7 @@ it's turned on."
                         (if browse-kill-ring-depropertize
                             #'substring-no-properties
                           #'copy-sequence)
-                        kill-ring)))
+                        (symbol-value browse-kill-ring-source))))
             (when (not browse-kill-ring-display-duplicates)
               ;; display leftmost or rightmost duplicate.
               ;; if `browse-kill-ring-display-leftmost-duplicate' is t,
@@ -1097,14 +1136,24 @@ it's turned on."
                         nil t))
 ;; Code from Michael Slass <mikesl@wrq.com>
             (message
-             (let ((entry (if (= 1 (length kill-ring)) "entry" "entries")))
+             (let ((entry
+                    (if (= 1 (length
+                              (symbol-value browse-kill-ring-source)))
+                        "entry" "entries")))
                (concat
-                (if (and (not regexp)
-                         browse-kill-ring-display-duplicates)
-                    (format "%s %s in the kill ring."
-                            (length kill-ring) entry)
-                  (format "%s (of %s) %s in the kill ring shown."
-                          (length items) (length kill-ring) entry))
+                (let ((ring-length
+                       (length (symbol-value browse-kill-ring-source)))
+                      (ring-name
+                       (replace-regexp-in-string
+                        (regexp-quote "-")
+                        " "
+                        (symbol-name browse-kill-ring-source))))
+                  (if (and (not regexp)
+                           browse-kill-ring-display-duplicates)
+                      (format "%s %s in the %s."
+                              ring-length entry ring-name)
+                    (format "%s (of %s) %s in the %s shown."
+                            (length items) ring-length entry ring-name)))
                 (substitute-command-keys
                  (concat "    Type \\[browse-kill-ring-quit] to quit.  "
                          "\\[describe-mode] for help.")))))
@@ -1142,24 +1191,54 @@ start of the buffer."
     (unless search-found
       (goto-char (point-min)))))
 
+(defun browse-kill-ring-buffer-name (&optional extra)
+  "Return the a string based on `browse-kill-ring-source' and EXTRA.
+
+Generates a string based on the current value of
+`browse-kill-ring-source' and the optional string EXTRA."
+  (concat "*"
+          (upcase-initials
+           (concat
+            (replace-regexp-in-string
+             (regexp-quote "-")
+             " "
+             (symbol-name browse-kill-ring-source))
+            (if extra (concat " " extra) "")))
+          "*"))
+
 ;;;###autoload
-(defun browse-kill-ring ()
-  "Display items in the `kill-ring' in another buffer."
+(defun browse-kill-ring (&optional ring-var)
+  "Display items in the RING-VAR in another buffer.
+
+The contents of RING-VAR are displayed in a separate buffer,
+allowing the user to select the entry they wish to insert.
+
+If RING-VAR is nil, or not supplied, then it defaults to
+`kill-ring'."
   (interactive)
   (if (eq major-mode 'browse-kill-ring-mode)
       (error "Already viewing the kill ring"))
 
   (let* ((orig-win (selected-window))
          (orig-buf (window-buffer orig-win))
-         (buf (get-buffer-create "*Kill Ring*"))
-         (kill-ring-yank-pointer-string
-          (if kill-ring-yank-pointer
-              (substring-no-properties (car kill-ring-yank-pointer)))))
+         (ring-var (if ring-var ring-var 'kill-ring))
+         (buf nil))
+    (setq browse-kill-ring-source ring-var)
+    (setq buf (get-buffer-create (browse-kill-ring-buffer-name)))
     (browse-kill-ring-setup buf orig-buf orig-win)
     (pop-to-buffer buf)
     (browse-kill-ring-resize-window)
-    (unless (eq kill-ring kill-ring-yank-pointer)
-      (browse-kill-ring-find-entry kill-ring-yank-pointer-string))))
+
+    ;; If there's a KILL-RING-yank-pointer symbol defined, then use
+    ;; that to select the correct entry in the KILL-RING.
+    (let ((yank-pointer-symbol
+           (browse-kill-ring-yank-pointer-sym)))
+      (if (and yank-pointer-symbol
+               (not (eq (symbol-value browse-kill-ring-source)
+                        (symbol-value yank-pointer-symbol))))
+          (browse-kill-ring-find-entry
+           (substring-no-properties
+            (car (symbol-value yank-pointer-symbol))))))))
 
 (provide 'browse-kill-ring)
 

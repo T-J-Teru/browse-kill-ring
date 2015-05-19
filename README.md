@@ -76,6 +76,22 @@ The `browse-kill-ring` package can be customized through the usual emacs customi
   the item under point in the `*Kill Ring*` buffer to be displayed in
   the original buffer where the item would be inserted.
 
+### Beyond The `kill-ring`
+
+The `browse-kill-ring` function can optionally take the name of a
+symbol that is the ring variable to browse.  This can be used with for
+example, the `secondary-selection-ring` (see
+http://www.emacswiki.org/emacs/second-sel.el) by creating a wrapper
+function like this:
+
+```lisp
+(require 'second-sel)
+
+(defun browse-secondary-selection-ring ()
+  (interactive)
+  (browse-kill-ring 'secondary-selection-ring))
+```
+
 ## Known issues
 
 Check out the project's

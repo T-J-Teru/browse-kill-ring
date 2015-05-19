@@ -1,3 +1,9 @@
+2015-05-19 Andrew Burgess <andrew.burgess@embecosm.com>
+	The browse-kill-ring package can bow be used to browse rings
+	beyond just `kill-ring'.  The browse-kill-ring function can
+	optionally be passed the symbol name of a ring to browse.  This
+	can be used with, for example, the `secondard-selection-ring'.
+
 2015-04-27 Andrew Burgess <andrew.burgess@embecosm.com>
 	Remove `browse-kill-ring-no-duplicates'.  This functionality was
 	never related to browsing the kill-ring, and would be better moved
