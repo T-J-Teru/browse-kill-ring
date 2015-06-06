@@ -1,3 +1,13 @@
+2015-05-18 Andrew Burgess <andrew.burgess@embecosm.com>
+	Restore the mode name to "Kill Ring" if the filter regexp is
+	removed.
+
+2015-05-18 Andrew Burgess <andrew.burgess@embecosm.com>
+	The default for `browse-kill-ring-occur' is now to remove the
+	regexp that is currently in place, restoring all item in the
+	kill-ring to the display.  Previous regexp are still available in
+	the history ring if needed.
+
 2015-04-27 Andrew Burgess <andrew.burgess@embecosm.com>
 	Remove `browse-kill-ring-no-duplicates'.  This functionality was
 	never related to browsing the kill-ring, and would be better moved
