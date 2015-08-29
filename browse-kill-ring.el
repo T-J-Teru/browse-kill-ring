@@ -48,9 +48,8 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl)
-  (require 'derived))
+(require 'cl-lib)
+(require 'derived)
 
 (defgroup browse-kill-ring nil
   "A package for browsing and inserting the items in `kill-ring'."
@@ -366,8 +365,9 @@ of the *Kill Ring*."
     (case browse-kill-ring-highlight-inserted-item
       ((pulse t)
        (let ((pulse-delay .05) (pulse-iterations 10))
-         (pulse-momentary-highlight-region
-          start end browse-kill-ring-inserted-item-face)))
+         (with-no-warnings
+           (pulse-momentary-highlight-region
+          start end browse-kill-ring-inserted-item-face))))
       ('solid
        (let ((o (make-overlay start end)))
          (overlay-put o 'face browse-kill-ring-inserted-item-face)
@@ -792,8 +792,8 @@ reselects ENTRY in the `*Kill Ring*' buffer."
     (browse-kill-ring-edit-finalise current-entry)))
 
 (defmacro browse-kill-ring-add-overlays-for (item &rest body)
-  (let ((beg (gensym "browse-kill-ring-add-overlays-"))
-        (end (gensym "browse-kill-ring-add-overlays-")))
+  (let ((beg (cl-gensym "browse-kill-ring-add-overlays-"))
+        (end (cl-gensym "browse-kill-ring-add-overlays-")))
     `(let ((,beg (point))
            (,end
             (progn
@@ -1034,8 +1034,7 @@ it's turned on."
               ;; display leftmost or rightmost duplicate.
               ;; if `browse-kill-ring-display-leftmost-duplicate' is t,
               ;; display leftmost(last) duplicate.
-              (require 'cl)
-              (delete-duplicates items
+              (cl-delete-duplicates items
                                  :test #'equal
                                  :from-end browse-kill-ring-display-leftmost-duplicate))
             (when (stringp regexp)
