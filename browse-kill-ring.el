@@ -287,31 +287,6 @@ well."
                               (point)
                               quit))
 
-(defun browse-kill-ring-insert-new (insert-action post-action &optional quit)
-  "Insert the kill ring item at point into the last selected buffer.
-`insert-action' can be 'insert 'append 'prepend.
-`post-action' can be nil 'move 'delete.
-If optional argument QUIT is non-nil, close the *Kill Ring* buffer as
-well."
-  (interactive "P")
-  (let* ((buf (current-buffer))
-        (pt (point))
-        (str (browse-kill-ring-current-string buf pt)))
-    (case insert-action
-      ('insert (browse-kill-ring-do-insert buf pt nil))
-      ('append (browse-kill-ring-do-append-insert buf pt nil))
-      ('prepend (browse-kill-ring-do-prepend-insert buf pt nil))
-      (t (error "Unknown insert-action: %s" insert-action)))
-    (case post-action
-      ('move
-        (browse-kill-ring-delete)
-        (kill-new str))
-      ('delete (browse-kill-ring-delete))
-      (t (error "Unknown post-action: %s" post-action)))
-    (if quit
-      (browse-kill-ring-quit)
-      (browse-kill-ring-update))))
-
 (defun browse-kill-ring-insert-and-delete (&optional quit)
   "Insert the kill ring item at point, and remove it from the kill ring.
 If optional argument QUIT is non-nil, close the *Kill Ring* buffer as
@@ -342,7 +317,8 @@ well."
 (defun browse-kill-ring-insert-move-and-quit ()
   "Like `browse-kill-ring-insert-and-move', but close the *Kill Ring* buffer."
   (interactive)
-  (browse-kill-ring-insert-new 'insert 'move t))
+  (browse-kill-ring-insert-and-move nil)
+  (browse-kill-ring-quit))
 
 (defun browse-kill-ring-prepend-insert (&optional quit)
   "Like `browse-kill-ring-insert', but it places the entry at the beginning
