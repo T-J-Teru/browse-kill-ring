@@ -49,6 +49,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'cl)
 (require 'derived)
 
 (defgroup browse-kill-ring nil
