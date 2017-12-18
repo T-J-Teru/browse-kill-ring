@@ -298,23 +298,30 @@ well."
 If optional argument QUIT is non-nil, close the *Kill Ring* buffer as
 well."
   (interactive "P")
-  (let* ((buf (current-buffer))
-        (pt (point))
-        (str (browse-kill-ring-current-string buf pt)))
+  (let ((buf (current-buffer))
+        (pt (point)))
     (case insert-action
       ('insert (browse-kill-ring-do-insert buf pt))
       ('append (browse-kill-ring-do-append-insert buf pt))
       ('prepend (browse-kill-ring-do-prepend-insert buf pt))
       (t (error "Unknown insert-action: %s" insert-action)))
     (case post-action
-      ('move
-        (browse-kill-ring-delete)
-        (kill-new str))
+      ('move (browse-kill-ring-move-to-front))
       ('delete (browse-kill-ring-delete))
       (t (error "Unknown post-action: %s" post-action)))
     (if quit
       (browse-kill-ring-quit)
       (browse-kill-ring-update))))
+
+(defun browse-kill-ring-move-to-front ()
+  "Move the item at point to the front of the kill-ring."
+  (interactive)
+  (let* ((buf (current-buffer))
+         (pt (point))
+         (str (browse-kill-ring-current-string buf pt)))
+    (browse-kill-ring-delete)
+    (kill-new str)
+    (browse-kill-ring-update)))
 
 (defun browse-kill-ring-insert-and-delete (&optional quit)
   "Insert the kill ring item at point, and remove it from the kill ring.
