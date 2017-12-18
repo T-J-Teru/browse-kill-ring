@@ -676,7 +676,7 @@ You most likely do not want to call `browse-kill-ring-mode' directly; use
 
 \\{browse-kill-ring-mode-map}"
   (set (make-local-variable 'font-lock-defaults)
-       '(nil t nil nil nil
+       '(nil t nil nil
              (font-lock-fontify-region-function . browse-kill-ring-fontify-region)))
   (define-key browse-kill-ring-mode-map (kbd "q") 'browse-kill-ring-quit)
   (define-key browse-kill-ring-mode-map (kbd "C-g") 'browse-kill-ring-quit)
@@ -915,7 +915,8 @@ reselects ENTRY in the `*Kill Ring*' buffer."
   (let ((buffer-read-only nil))
     (browse-kill-ring-fontify-on-property 'browse-kill-ring-extra 'bold beg end)
     (browse-kill-ring-fontify-on-property 'browse-kill-ring-separator
-                                          browse-kill-ring-separator-face beg end))
+                                          browse-kill-ring-separator-face beg end)
+    (font-lock-fontify-keywords-region beg end verbose))
   (when verbose (message "Fontifying...done")))
 
 (defun browse-kill-ring-update ()
