@@ -838,7 +838,8 @@ reselects ENTRY in the `*Kill Ring*' buffer."
               (point))))
        (let ((o (make-overlay ,beg ,end)))
          (overlay-put o 'browse-kill-ring-target ,item)
-         (overlay-put o 'mouse-face 'highlight)))))
+         (if browse-kill-ring-highlight-current-entry
+             (overlay-put o 'mouse-face 'highlight))))))
 ;; (put 'browse-kill-ring-add-overlays-for 'lisp-indent-function 1)
 
 (defun browse-kill-ring-elide (str)
