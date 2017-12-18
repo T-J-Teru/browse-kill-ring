@@ -481,6 +481,9 @@ of the *Kill Ring*."
            (inhibit-read-only t))
       (delete-region (overlay-start over) (1+ (overlay-end over)))
       (setq kill-ring (delete target kill-ring))
+      (if (equal target (car kill-ring-yank-pointer))
+          (setq kill-ring-yank-pointer
+                (delete target kill-ring-yank-pointer)))
       (cond
        ;; Don't try to delete anything else in an empty buffer.
        ((and (bobp) (eobp)) t)
