@@ -280,15 +280,14 @@ yanked text from the *Kill Ring* buffer."
   (with-current-buffer (window-buffer browse-kill-ring-original-window)
     (undo)))
 
-(defun browse-kill-ring-insert (&optional quit)
-  "Insert the kill ring item at point into the last selected buffer.
-If optional argument QUIT is non-nil, close the *Kill Ring* buffer as
-well."
-  (interactive "P")
-  (browse-kill-ring-do-insert (current-buffer)
-                              (point))
-  (if quit
-      (browse-kill-ring-quit)
+(defun browse-kill-ring-move-to-front ()
+  "Move the item at point to the front of the kill-ring."
+  (interactive)
+  (let* ((buf (current-buffer))
+         (pt (point))
+         (str (browse-kill-ring-current-string buf pt)))
+    (browse-kill-ring-delete)
+    (kill-new str)
     (browse-kill-ring-update)))
 
 (defun browse-kill-ring-insert-new (insert-action post-action &optional quit)
@@ -306,67 +305,47 @@ well."
       ('prepend (browse-kill-ring-do-prepend-insert buf pt))
       (t (error "Unknown insert-action: %s" insert-action)))
     (case post-action
+      ('nil t)
       ('move (browse-kill-ring-move-to-front))
       ('delete (browse-kill-ring-delete))
       (t (error "Unknown post-action: %s" post-action)))
     (if quit
-      (browse-kill-ring-quit)
-      (browse-kill-ring-update))))
+        (browse-kill-ring-quit))))
 
-(defun browse-kill-ring-move-to-front ()
-  "Move the item at point to the front of the kill-ring."
-  (interactive)
-  (let* ((buf (current-buffer))
-         (pt (point))
-         (str (browse-kill-ring-current-string buf pt)))
-    (browse-kill-ring-delete)
-    (kill-new str)
-    (browse-kill-ring-update)))
-
-(defun browse-kill-ring-insert-and-delete (&optional quit)
-  "Insert the kill ring item at point, and remove it from the kill ring.
+(defun browse-kill-ring-insert (&optional quit)
+  "Insert the kill ring item at point into the last selected buffer.
 If optional argument QUIT is non-nil, close the *Kill Ring* buffer as
 well."
   (interactive "P")
-  (browse-kill-ring-do-insert (current-buffer)
-                              (point))
-  (browse-kill-ring-delete)
-  (if quit
-      (browse-kill-ring-quit)
-    (browse-kill-ring-update)))
+  (browse-kill-ring-insert-new 'insert nil quit))
 
 (defun browse-kill-ring-insert-and-quit ()
   "Like `browse-kill-ring-insert', but close the *Kill Ring* buffer afterwards."
   (interactive)
   (browse-kill-ring-insert t))
 
+(defun browse-kill-ring-insert-and-delete (&optional quit)
+  "Insert the kill ring item at point, and remove it from the kill ring.
+If optional argument QUIT is non-nil, close the *Kill Ring* buffer as
+well."
+  (interactive "P")
+  (browse-kill-ring-insert-new 'insert 'delete quit))
+
 (defun browse-kill-ring-insert-and-move (&optional quit)
   "Like `browse-kill-ring-insert', but move the entry to the front."
   (interactive "P")
-  (let ((buf (current-buffer))
-        (pt (point)))
-    (browse-kill-ring-do-insert buf pt)
-    (let ((str (browse-kill-ring-current-string buf pt)))
-      (browse-kill-ring-delete)
-      (kill-new str)))
-  (if quit
-      (browse-kill-ring-quit)
-    (browse-kill-ring-update)))
+  (browse-kill-ring-insert-new 'insert 'move quit))
 
 (defun browse-kill-ring-insert-move-and-quit ()
   "Like `browse-kill-ring-insert-and-move', but close the *Kill Ring* buffer."
   (interactive)
-  (browse-kill-ring-insert-new 'insert 'move t))
+  (browse-kill-ring-insert-and-move t))
 
 (defun browse-kill-ring-prepend-insert (&optional quit)
   "Like `browse-kill-ring-insert', but it places the entry at the beginning
 of the buffer as opposed to point.  Point is left unchanged after inserting."
   (interactive "P")
-  (browse-kill-ring-do-prepend-insert (current-buffer)
-                                      (point))
-  (if quit
-      (browse-kill-ring-quit)
-    (browse-kill-ring-update)))
+  (browse-kill-ring-insert-new 'prepend nil quit))
 
 (defun browse-kill-ring-prepend-insert-and-quit ()
   "Like `browse-kill-ring-prepend-insert', but close the *Kill Ring* buffer."
@@ -377,15 +356,7 @@ of the buffer as opposed to point.  Point is left unchanged after inserting."
   "Like `browse-kill-ring-prepend-insert', but move the entry to the front
 of the *Kill Ring*."
   (interactive "P")
-  (let ((buf (current-buffer))
-        (pt (point)))
-    (browse-kill-ring-do-prepend-insert buf pt)
-    (let ((str (browse-kill-ring-current-string buf pt)))
-      (browse-kill-ring-delete)
-      (kill-new str)))
-  (if quit
-      (browse-kill-ring-quit)
-    (browse-kill-ring-update)))
+  (browse-kill-ring-insert-new 'prepend 'move quit))
 
 (defun browse-kill-ring-prepend-insert-move-and-quit ()
   "Like `browse-kill-ring-prepend-insert-and-move', but close the
@@ -447,11 +418,7 @@ Temporarily restore `browse-kill-ring-original-window' and
   "Like `browse-kill-ring-insert', but places the entry at the end of the
 buffer as opposed to point.  Point is left unchanged after inserting."
   (interactive "P")
-  (browse-kill-ring-do-append-insert (current-buffer)
-                                     (point))
-  (if quit
-      (browse-kill-ring-quit)
-    (browse-kill-ring-update)))
+  (browse-kill-ring-insert-new 'append nil quit))
 
 (defun browse-kill-ring-append-insert-and-quit ()
   "Like `browse-kill-ring-append-insert', but close the *Kill Ring* buffer."
@@ -462,15 +429,7 @@ buffer as opposed to point.  Point is left unchanged after inserting."
   "Like `browse-kill-ring-append-insert', but move the entry to the front
 of the *Kill Ring*."
   (interactive "P")
-  (let ((buf (current-buffer))
-        (pt (point)))
-    (browse-kill-ring-do-append-insert buf pt)
-    (let ((str (browse-kill-ring-current-string buf pt)))
-      (browse-kill-ring-delete)
-      (kill-new str)))
-  (if quit
-      (browse-kill-ring-quit)
-    (browse-kill-ring-update)))
+  (browse-kill-ring-insert-new 'append 'move quit))
 
 (defun browse-kill-ring-append-insert-move-and-quit ()
   "Like `browse-kill-ring-append-insert-and-move', but close the
