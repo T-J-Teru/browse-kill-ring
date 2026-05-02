@@ -352,6 +352,9 @@ of the *Kill Ring*."
   (interactive)
   (browse-kill-ring-prepend-insert-and-move t))
 
+(defvar pulse-delay)
+(defvar pulse-iterations)
+
 (defun browse-kill-ring-highlight-inserted (start end)
   (when browse-kill-ring-highlight-inserted-item
     ;; First, load the `pulse' library if needed.
@@ -479,7 +482,7 @@ of the *Kill Ring*."
   "Return overlay at POSITION that has property `browse-kill-ring-target'.
 If no such overlay, raise an error unless NO-ERROR is true, in which
 case retun nil."
-  (let ((ovs  (overlays-at (point))))
+  (let ((ovs  (overlays-at position)))
     (catch 'browse-kill-ring-target-overlay-at
       (dolist (ov  ovs)
         (when (overlay-get ov 'browse-kill-ring-target)
@@ -488,7 +491,7 @@ case retun nil."
         (error "No selection-ring item here")))))
 
 ;; Find the string to insert at the point by looking for the overlay.
-(defun browse-kill-ring-current-string (buf pt &optional no-error)
+(defun browse-kill-ring-current-string (_buf pt &optional no-error)
   (let ((o (browse-kill-ring-target-overlay-at pt t)))
     (if o
         (overlay-get o 'browse-kill-ring-target)
@@ -622,7 +625,7 @@ entry."
   (case browse-kill-ring-quit-action
     (save-and-restore
       (if (< emacs-major-version 24)
-        (let (buf (current-buffer))
+        (let ((buf (current-buffer)))
              (set-window-configuration browse-kill-ring-original-window-config)
            (kill-buffer buf))
        (quit-window)))
@@ -833,8 +836,7 @@ reselects ENTRY in the `*Kill Ring*' buffer."
     (browse-kill-ring-insert-as-separated-1 (car items) nil)))
 
 (defun browse-kill-ring-insert-as-separated-1 (origitem separatep)
-  (let* ((item (browse-kill-ring-elide origitem))
-         (len (length item)))
+  (let* ((item (browse-kill-ring-elide origitem)))
     (browse-kill-ring-add-overlays-for origitem
                                        (insert item))
     ;; When the kill-ring has items with read-only text property at
@@ -919,7 +921,7 @@ Callback triggered after a change in the *Kill Ring Edit* buffer,
 update the preview in the original buffer."
   (browse-kill-ring-preview-update-text (buffer-string)))
 
-(defun browse-kill-ring-current-index (buf pt)
+(defun browse-kill-ring-current-index (_buf pt)
   "Return current index."
   (let ((overlay-start-point
          (overlay-start
