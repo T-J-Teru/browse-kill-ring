@@ -262,6 +262,9 @@ call `browse-kill-ring' again.")
           (shrink-window-if-larger-than-buffer window)
         (shrink-window (- (window-height) window-min-height))))))
 
+(declare-function browse-kill-ring-fit-window "browse-kill-ring"
+                  (window max-height min-height))
+
 (defun browse-kill-ring-resize-window ()
   (when browse-kill-ring-resize-window
     (apply #'browse-kill-ring-fit-window (selected-window)
